@@ -166,9 +166,12 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
+
   const menos=document.createElement("button");menos.textContent="−";
-  const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
+  const cantidad=document.createElement("input");
+  cantidad.type="number";cantidad.min=1;
   const mas=document.createElement("button");mas.textContent="＋";
+
   qtyBox.append(menos,cantidad,mas);
 
   const precio=document.createElement("td");
@@ -185,12 +188,17 @@ function agregarFila(){
     producto.disabled=!marca.value;
     productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
-    cantidad.value="";precio.textContent="₡0";recalcular();
+    cantidad.value="";
+    precio.textContent="₡0";
+    recalcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.nombre===producto.value);
-    if(p){cantidad.value=1;precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");}
+    if(p){
+      cantidad.value=1;
+      precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");
+    }
     recalcular();
   };
 
@@ -201,7 +209,11 @@ function agregarFila(){
   document.getElementById("body").appendChild(tr);
 }
 
-function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
+function td(el){
+  const td=document.createElement("td");
+  td.appendChild(el);
+  return td;
+}
 
 function recalcular(){
   const items=[];
@@ -214,37 +226,47 @@ function recalcular(){
   fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
   .then(r=>r.json())
   .then(res=>{
-    tU.textContent=res.totalUnidades;
-    tS.textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
-    tF.textContent="₡"+res.granTotal.toLocaleString("es-CR");
-    tP.textContent=res.descuentoPct.toFixed(1)+"%";
+    document.getElementById("tU").textContent=res.totalUnidades;
+    document.getElementById("tS").textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
+    document.getElementById("tF").textContent="₡"+res.granTotal.toLocaleString("es-CR");
+    document.getElementById("tP").textContent=res.descuentoPct.toFixed(1)+"%";
   });
 }
 
 function generarResumen(){
   const rb=document.getElementById("resumen-body");
   rb.innerHTML="";
+
   document.querySelectorAll("#body tr").forEach(tr=>{
     const p=tr.children[1].querySelector("select").value;
     const q=tr.querySelector("input").value;
-    if(p && q>0) rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    if(p && q>0){
+      rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    }
   });
 
   const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
-  r-fecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
-  r-vence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
-  r-total-sin.textContent=tS.textContent;
-  r-descuento.textContent=tP.textContent;
-  r-total-final.textContent=tF.textContent;
+  document.getElementById("r-fecha").textContent="Fecha: "+h.toLocaleDateString("es-CR");
+  document.getElementById("r-vence").textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
 
-  html2canvas(resumen,{scale:2}).then(c=>{
-    const a=document.createElement("a");
-    a.download="resumen_marys_beauty.png";
-    a.href=c.toDataURL();a.click();
-    window.open("https://wa.me/?text="+encodeURIComponent(
-      "Cotización Mary’s Beauty\nTotal a pagar: "+tF.textContent
-    ),"_blank");
-  });
+  document.getElementById("r-total-sin").textContent=document.getElementById("tS").textContent;
+  document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
+  document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
+
+  html2canvas(document.getElementById("resumen"),{scale:2})
+    .then(c=>{
+      const a=document.createElement("a");
+      a.download="resumen_marys_beauty.png";
+      a.href=c.toDataURL();
+      a.click();
+
+      window.open(
+        "https://wa.me/?text="+encodeURIComponent(
+          "Cotización Mary’s Beauty\nTotal a pagar: "+document.getElementById("tF").textContent
+        ),
+        "_blank"
+      );
+    });
 }
 </script>
 </body>
