@@ -27,11 +27,11 @@ body{
   gap:14px;
   margin-bottom:16px;
 }
-.header img{height:70px}
+.header img{height:60px}
 .header h2{
   background:#ec008c;
   color:#fff;
-  padding:14px 20px;
+  padding:14px 22px;
   border-radius:14px;
   margin:0;
 }
@@ -114,72 +114,34 @@ button{
 </div>
 </div>
 
-<!-- RESUMEN OCULTO -->
-<div id="resumen" style="
-  position:absolute;
-  left:-9999px;
-  top:0;
-  width:420px;
-  background:#ffffff;
-  padding:20px;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
-">
-  <div style="text-align:center;margin-bottom:12px;">
-    <img src="LogoRosado.jpg" style="max-width:180px;">
-  </div>
-
-  <h3 style="text-align:center;margin:0 0 6px;">Resumen de cotización</h3>
-
-  <p style="text-align:center;font-size:13px;margin:0 0 12px;">
-    Fecha: <strong id="r-fecha"></strong><br>
-    Válido hasta: <strong id="r-vencimiento"></strong>
-  </p>
-
-  <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <thead>
-      <tr>
-        <th style="text-align:left;border-bottom:1px solid #ccc;">Producto</th>
-        <th style="text-align:center;border-bottom:1px solid #ccc;">Cant.</th>
-      </tr>
-    </thead>
-    <tbody id="resumen-body"></tbody>
-  </table>
-
-  <hr>
-
-  <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
-  <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
-  <p style="font-size:18px;">
-    Total a pagar:<br>
-    <strong id="r-total-final"></strong>
-  </p>
-
-  <p style="font-size:12px;color:#555;margin-top:12px;">
-    * Los precios y productos están sujetos a disponibilidad al momento de la compra.
-  </p>
-</div>
-
 <script>
 const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
 let productos=[], marcas=[];
 
-fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
-.then(r=>r.json())
-.then(data=>{
-  productos=data;
-  marcas=[...new Set(productos.map(p=>p.marca))];
-  for(let i=0;i<6;i++) agregarFila();
+document.addEventListener("DOMContentLoaded",()=>{
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify({action:"productos"})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    productos=data;
+    marcas=[...new Set(productos.map(p=>p.marca))];
+
+    // ✅ 6 FILAS AUTOMÁTICAS
+    for(let i=0;i<6;i++) agregarFila();
+  });
 });
 
 function agregarFila(){
   const tr=document.createElement("tr");
 
   const marca=document.createElement("select");
-  marca.innerHTML="<option></option>";
+  marca.innerHTML="<option value=''></option>";
   marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
 
   const producto=document.createElement("select");
-  producto.innerHTML="<option></option>";
+  producto.innerHTML="<option value=''></option>";
   producto.disabled=true;
 
   const qty=document.createElement("div");
@@ -190,33 +152,40 @@ function agregarFila(){
   qty.append(menos,cant,mas);
 
   const precio=document.createElement("td");
-  precio.className="money";precio.textContent="₡0";
+  precio.className="money";
+  precio.textContent="₡0";
 
   const del=document.createElement("button");
-  del.textContent="🗑";del.className="del";
+  del.textContent="🗑";
+  del.className="del";
   del.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qty),precio,td(del));
+  document.getElementById("body").appendChild(tr);
 
   marca.onchange=()=>{
-    producto.innerHTML="<option></option>";
+    producto.innerHTML="<option value=''></option>";
     producto.disabled=!marca.value;
-    productos.filter(p=>p.marca===marca.value)
+    productos
+      .filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
-    cant.value="";precio.textContent="₡0";recalcular();
+    cant.value="";
+    precio.textContent="₡0";
+    recalcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.nombre===producto.value);
-    if(p){cant.value=1;precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");}
+    if(p){
+      cant.value=1;
+      precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");
+    }
     recalcular();
   };
 
   menos.onclick=()=>{cant.value=Math.max(1,(+cant.value||1)-1);recalcular();}
   mas.onclick=()=>{cant.value=(+cant.value||0)+1;recalcular();}
   cant.oninput=recalcular;
-
-  document.getElementById("body").appendChild(tr);
 }
 
 function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
@@ -229,7 +198,10 @@ function recalcular(){
     if(prod&&qty>0) items.push({producto:prod,cantidad:qty});
   });
 
-  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify({action:"calcularDetalle",items})
+  })
   .then(r=>r.json())
   .then(res=>{
     tU.textContent=res.totalUnidades;
@@ -240,42 +212,9 @@ function recalcular(){
 }
 
 function generarResumen(){
-  const hoy=new Date();
-  const venc=new Date(hoy);
-  venc.setDate(hoy.getDate()+8);
-
-  r-fecha.textContent=hoy.toLocaleDateString("es-CR");
-  r-vencimiento.textContent=venc.toLocaleDateString("es-CR");
-
-  const rb=document.getElementById("resumen-body");
-  rb.innerHTML="";
-  document.querySelectorAll("#body tr").forEach(tr=>{
-    const prod=tr.children[1].querySelector("select").value;
-    const qty=tr.querySelector("input").value;
-    if(prod&&qty>0){
-      rb.innerHTML+=`<tr><td>${prod}</td><td style="text-align:center">${qty}</td></tr>`;
-    }
-  });
-
-  r-total-sin.textContent=tS.textContent;
-  r-descuento.textContent=tP.textContent;
-  r-total-final.textContent=tF.textContent;
-
-  html2canvas(resumen,{scale:2}).then(c=>{
-    const a=document.createElement("a");
-    a.download="cotizacion_marys_beauty.png";
-    a.href=c.toDataURL("image/png");
-    a.click();
-
-    window.open(
-      "https://wa.me/?text="+encodeURIComponent(
-        "Cotización Mary’s Beauty\nVálida hasta: "+r-vencimiento.textContent+
-        "\nTotal a pagar: "+tF.textContent
-      ),
-      "_blank"
-    );
-  });
+  alert("Resumen listo para WhatsApp (siguiente paso)");
 }
 </script>
+
 </body>
 </html>
