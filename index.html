@@ -105,7 +105,6 @@
           <th>Producto</th>
           <th>Cantidad</th>
           <th>Precio Unitario</th>
-          <th>Total</th>
           <th>Acción</th>
         </tr>
       </thead>
@@ -166,15 +165,10 @@ function agregarFila(){
   const cantidad=document.createElement("input");
   cantidad.type="number";
   cantidad.min=1;
-  cantidad.placeholder="";
 
   const precio=document.createElement("td");
   precio.className="money";
   precio.textContent="₡0";
-
-  const total=document.createElement("td");
-  total.className="money";
-  total.textContent="₡0";
 
   const borrar=document.createElement("button");
   borrar.textContent="🗑";
@@ -185,13 +179,13 @@ function agregarFila(){
   tr.appendChild(td(producto));
   tr.appendChild(td(cantidad));
   tr.appendChild(precio);
-  tr.appendChild(total);
   tr.appendChild(td(borrar));
 
   marca.onchange=()=>{
     producto.innerHTML="<option></option>";
     producto.disabled=!marca.value;
-    productos.filter(p=>p.marca===marca.value)
+    productos
+      .filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
     calcular();
   };
@@ -229,16 +223,10 @@ function calcular(){
 
     [...document.querySelectorAll("#body tr")].forEach(tr=>{
       const prod=tr.children[1].firstChild.value;
-      const qty=Number(tr.children[2].firstChild.value||0);
       const p=productos.find(x=>x.nombre===prod);
-      if(p && qty>0){
-        tr.children[3].textContent="₡"+p.precioLista.toLocaleString("es-CR");
-        tr.children[4].textContent=
-          "₡"+(p.precioLista*qty).toLocaleString("es-CR");
-      }else{
-        tr.children[3].textContent="₡0";
-        tr.children[4].textContent="₡0";
-      }
+      tr.children[3].textContent = p
+        ? "₡"+p.precioLista.toLocaleString("es-CR")
+        : "₡0";
     });
   });
 }
