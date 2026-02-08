@@ -1,44 +1,197 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Calculadora Detalle</title>
+
 <style>
-  table { border-collapse: collapse; width: 100%; }
-  th, td { border: 1px solid #999; padding: 6px; }
-  select, input { width: 100%; }
+  :root{
+    --bg:#f2f4f7;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --primary:#2563eb;
+    --danger:#ef4444;
+    --border:#e5e7eb;
+    --shadow:0 10px 25px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  .app{
+    max-width:1200px;
+    margin:16px auto;
+    padding:16px;
+  }
+  .header{
+    background:linear-gradient(135deg,#1d4ed8,#2563eb);
+    color:#fff;
+    border-radius:14px;
+    padding:18px 20px;
+    box-shadow:var(--shadow);
+    margin-bottom:16px;
+  }
+  .header h1{
+    margin:0;
+    font-size:1.25rem;
+    font-weight:700;
+  }
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:14px;
+  }
+  .table-wrap{
+    overflow-x:auto;
+  }
+  table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    min-width:900px;
+  }
+  thead th{
+    position:sticky;
+    top:0;
+    background:#f9fafb;
+    color:#374151;
+    font-weight:600;
+    font-size:.85rem;
+    padding:10px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+  }
+  tbody td{
+    padding:8px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  tbody tr:nth-child(even){
+    background:#fcfcfd;
+  }
+  select,input{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    font-size:.9rem;
+  }
+  input[type=number]{max-width:90px}
+  .money{
+    text-align:right;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .actions{
+    text-align:center;
+  }
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:.85rem;
+    cursor:pointer;
+    background:var(--primary);
+    color:#fff;
+  }
+  .btn-danger{
+    background:transparent;
+    color:var(--danger);
+    border:1px solid #fecaca;
+  }
+  .footer{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin-top:14px;
+  }
+  .totals{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+  }
+  .total-box{
+    background:#f9fafb;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    text-align:center;
+  }
+  .total-box .label{
+    font-size:.75rem;
+    color:var(--muted);
+  }
+  .total-box .value{
+    font-size:1.1rem;
+    font-weight:700;
+    margin-top:4px;
+  }
+  .controls{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+  }
+  @media(max-width:768px){
+    .totals{grid-template-columns:1fr}
+    .controls{justify-content:stretch}
+    .btn{width:100%}
+  }
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<h3>Calculadora de Ventas al Detalle</h3>
+  <div class="header">
+    <h1>Calculadora de Ventas al Detalle</h1>
+  </div>
 
-<table>
-<thead>
-<tr>
-<th>Marca</th>
-<th>Producto</th>
-<th>Cantidad</th>
-<th>Precio Unitario</th>
-<th>Total</th>
-</tr>
-</thead>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Marca</th>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Precio con descuento</th>
+            <th>Total</th>
+            <th class="actions">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
 
-<tbody id="body"></tbody>
+    <div class="footer">
+      <div class="totals">
+        <div class="total-box">
+          <div class="label">Total de productos</div>
+          <div class="value" id="totalU">0</div>
+        </div>
+        <div class="total-box">
+          <div class="label">% de descuento aplicado</div>
+          <div class="value" id="pctDesc">0%</div>
+        </div>
+        <div class="total-box">
+          <div class="label">Gran Total</div>
+          <div class="value" id="granT">₡0</div>
+        </div>
+      </div>
 
-<tfoot>
-<tr>
-<td colspan="2">Total Productos</td>
-<td id="totalU">0</td>
-<td>Gran Total</td>
-<td id="granT">₡0</td>
-</tr>
-</tfoot>
-</table>
+      <div class="controls">
+        <button class="btn" onclick="agregarFila()">➕ Agregar fila</button>
+      </div>
+    </div>
+  </div>
 
-<button onclick="agregarFila()">➕ Agregar fila</button>
+</div>
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
@@ -47,102 +200,94 @@ let productos = [];
 let marcas = [];
 
 // Cargar productos
-fetch(API, {
-  method: "POST",
-  body: JSON.stringify({ action: "productos" })
-})
-.then(r => r.json())
-.then(data => {
-  productos = data;
-
-  // 🔴 FILTRAR marcas vacías (SOLUCIÓN)
-  marcas = [...new Set(
-    productos
-      .map(p => p.marca)
-      .filter(m => m && m.trim() !== "")
-  )];
+fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
+.then(r=>r.json())
+.then(data=>{
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca).filter(m=>m && m.trim()!==""))];
+  // Fila inicial + 5 en blanco
+  for(let i=0;i<6;i++) agregarFila();
 });
 
-// Agregar fila
-function agregarFila() {
-  const tr = document.createElement("tr");
+// Crear fila
+function agregarFila(){
+  const tr=document.createElement("tr");
 
-  const selMarca = document.createElement("select");
-  selMarca.innerHTML = "<option value=''>-- Marca --</option>";
-  marcas.forEach(m => {
-    const o = document.createElement("option");
-    o.value = m;
-    o.textContent = m;
+  const selMarca=document.createElement("select");
+  selMarca.innerHTML="<option value=''>-- Marca --</option>";
+  marcas.forEach(m=>{
+    const o=document.createElement("option");
+    o.value=m;o.textContent=m;
     selMarca.appendChild(o);
   });
 
-  const selProd = document.createElement("select");
-  selProd.disabled = true;
-  selProd.innerHTML = "<option value=''>-- Producto --</option>";
+  const selProd=document.createElement("select");
+  selProd.disabled=true;
+  selProd.innerHTML="<option value=''>-- Producto --</option>";
 
-  const qty = document.createElement("input");
-  qty.type = "number";
-  qty.min = 1;
-  qty.value = 1;
+  const tdPrecio=document.createElement("td"); tdPrecio.className="money"; tdPrecio.textContent="₡0";
+  const tdPrecioDesc=document.createElement("td"); tdPrecioDesc.className="money"; tdPrecioDesc.textContent="₡0";
+  const tdTotal=document.createElement("td"); tdTotal.className="money"; tdTotal.textContent="₡0";
 
-  const tdPrecio = document.createElement("td");
-  tdPrecio.textContent = "₡0";
-
-  const tdTotal = document.createElement("td");
-  tdTotal.textContent = "₡0";
+  const btnDel=document.createElement("button");
+  btnDel.className="btn btn-danger";
+  btnDel.textContent="🗑";
+  btnDel.onclick=()=>{tr.remove();calcular();};
 
   tr.appendChild(document.createElement("td")).appendChild(selMarca);
   tr.appendChild(document.createElement("td")).appendChild(selProd);
-  tr.appendChild(document.createElement("td")).appendChild(qty);
   tr.appendChild(tdPrecio);
+  tr.appendChild(tdPrecioDesc);
   tr.appendChild(tdTotal);
+  tr.appendChild(document.createElement("td")).appendChild(btnDel);
 
-  selMarca.onchange = () => {
-    selProd.innerHTML = "<option value=''>-- Producto --</option>";
-    selProd.disabled = !selMarca.value;
-
-    productos
-      .filter(p => p.marca === selMarca.value)
-      .forEach(p => {
-        const o = document.createElement("option");
-        o.value = p.nombre;
-        o.textContent = p.nombre;
-        selProd.appendChild(o);
-      });
-
+  selMarca.onchange=()=>{
+    selProd.innerHTML="<option value=''>-- Producto --</option>";
+    selProd.disabled=!selMarca.value;
+    productos.filter(p=>p.marca===selMarca.value).forEach(p=>{
+      const o=document.createElement("option");
+      o.value=p.nombre; o.textContent=p.nombre;
+      selProd.appendChild(o);
+    });
     calcular();
   };
 
-  selProd.onchange = calcular;
-  qty.oninput = calcular;
+  selProd.onchange=calcular;
 
   document.getElementById("body").appendChild(tr);
 }
 
 // Calcular
-function calcular() {
-  const filas = [...document.querySelectorAll("#body tr")].map(tr => ({
+function calcular(){
+  const filas=[...document.querySelectorAll("#body tr")].map(tr=>({
     producto: tr.children[1].firstChild.value,
-    cantidad: Number(tr.children[2].firstChild.value)
+    cantidad: 1
   }));
 
-  fetch(API, {
-    method: "POST",
-    body: JSON.stringify({ action: "calcularDetalle", items: filas })
-  })
-  .then(r => r.json())
-  .then(r => {
-    document.getElementById("totalU").textContent = r.totalUnidades;
-    document.getElementById("granT").textContent =
-      "₡" + r.granTotal.toLocaleString("es-CR");
+  if(!filas.length){
+    document.getElementById("totalU").textContent="0";
+    document.getElementById("granT").textContent="₡0";
+    document.getElementById("pctDesc").textContent="0%";
+    return;
+  }
 
-    r.filas.forEach((f, i) => {
-      const tr = document.querySelectorAll("#body tr")[i];
-      tr.children[3].textContent =
-        "₡" + f.precioUnit.toLocaleString("es-CR");
-      tr.children[4].textContent =
-        "₡" + f.total.toLocaleString("es-CR");
+  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items:filas})})
+  .then(r=>r.json())
+  .then(r=>{
+    let totalSinDesc=0;
+    r.filas.forEach((f,i)=>{
+      const tr=document.querySelectorAll("#body tr")[i];
+      tr.children[2].textContent="₡"+f.precioUnit.toLocaleString("es-CR");
+      tr.children[3].textContent="₡"+f.precioUnit.toLocaleString("es-CR");
+      tr.children[4].textContent="₡"+f.total.toLocaleString("es-CR");
+      totalSinDesc += f.precioUnit;
     });
+
+    document.getElementById("totalU").textContent=r.totalUnidades;
+    document.getElementById("granT").textContent="₡"+r.granTotal.toLocaleString("es-CR");
+
+    const desc = totalSinDesc>0 ? ((1 - (r.granTotal/totalSinDesc))*100) : 0;
+    document.getElementById("pctDesc").textContent=desc.toFixed(1)+"%";
   });
 }
 </script>
