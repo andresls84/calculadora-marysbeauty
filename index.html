@@ -28,7 +28,7 @@
     color:#fff;
     padding:14px 20px;
     border-radius:12px;
-    text-align:center; /* ← TÍTULO CENTRADO */
+    text-align:center;
   }
   table{
     width:100%;
@@ -50,6 +50,7 @@
     border:1px solid #d1d5db;
     border-radius:10px;
     background:#f3f4f6;
+    font-size:15px;
   }
   input[type=number]{
     background:#fff;
@@ -157,21 +158,18 @@ function agregarFila(){
   const tr=document.createElement("tr");
 
   const marca=document.createElement("select");
-  marca.innerHTML="<option></option>";
+  marca.innerHTML="<option value=''></option>";
   marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
 
-  const producto=document.createElement("input");
-  producto.type="text";
+  const producto=document.createElement("select");
   producto.disabled=true;
-  producto.placeholder="Escriba producto…";
-  const lista=document.createElement("datalist");
-  const listId="list_"+Math.random();
-  lista.id=listId;
-  producto.setAttribute("list",listId);
+  producto.innerHTML="<option value=''></option>";
 
   const cantidad=document.createElement("input");
   cantidad.type="number";
-  cantidad.min=1;
+  cantidad.min=0;
+  cantidad.max=99;
+  cantidad.step=1;
   cantidad.inputMode="numeric";
 
   const precio=document.createElement("td");
@@ -184,22 +182,35 @@ function agregarFila(){
   borrar.onclick=()=>{tr.remove();calcular();};
 
   tr.appendChild(td(marca));
-  tr.appendChild(tdWrap(producto,lista));
+  tr.appendChild(td(producto));
   tr.appendChild(td(cantidad));
   tr.appendChild(precio);
   tr.appendChild(td(borrar));
 
+  let productosMarca=[];
+
   marca.onchange=()=>{
-    producto.value="";
-    lista.innerHTML="";
+    producto.innerHTML="<option value=''></option>";
     producto.disabled=!marca.value;
-    productos
-      .filter(p=>p.marca===marca.value)
-      .forEach(p=>lista.innerHTML+=`<option value="${p.nombre}">`);
+    productosMarca = productos.filter(p=>p.marca===marca.value);
+    productosMarca.forEach(p=>{
+      const o=document.createElement("option");
+      o.value=p.nombre;
+      o.textContent=p.nombre;
+      producto.appendChild(o);
+    });
     calcular();
   };
 
-  producto.oninput=calcular;
+  producto.oninput=()=>{
+    const texto=producto.value.toLowerCase();
+    [...producto.options].forEach(o=>{
+      if(!o.value) return;
+      o.hidden=!o.value.toLowerCase().includes(texto);
+    });
+    calcular();
+  };
+
   cantidad.oninput=calcular;
 
   document.getElementById("body").appendChild(tr);
@@ -210,17 +221,11 @@ function td(el){
   td.appendChild(el);
   return td;
 }
-function tdWrap(input,list){
-  const td=document.createElement("td");
-  td.appendChild(input);
-  td.appendChild(list);
-  return td;
-}
 
 function calcular(){
   const filas=[...document.querySelectorAll("#body tr")].map(tr=>({
-    producto: tr.children[1].querySelector("input").value,
-    cantidad: Number(tr.children[2].querySelector("input").value||0)
+    producto: tr.children[1].value,
+    cantidad: Number(tr.children[2].value||0)
   }));
 
   fetch(API,{
@@ -238,7 +243,7 @@ function calcular(){
       r.descuentoPct.toFixed(1)+"%";
 
     [...document.querySelectorAll("#body tr")].forEach(tr=>{
-      const prod=tr.children[1].querySelector("input").value;
+      const prod=tr.children[1].value;
       const p=productos.find(x=>x.nombre===prod);
       tr.children[3].textContent = p
         ? "₡"+p.precioLista.toLocaleString("es-CR")
