@@ -66,8 +66,8 @@ let productos=[], marcas=[];
 fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
 .then(r=>r.json())
 .then(data=>{
-  productos=data;
-  marcas=[...new Set(productos.map(p=>p.marca))];
+  productos = data.productos; // 🔴 CORRECCIÓN CLAVE
+  marcas = [...new Set(productos.map(p => p.marca))];
   for(let i=0;i<6;i++) agregarFila();
 });
 
