@@ -4,13 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Detalle</title>
+<style>
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #999; padding: 6px; }
+  select, input { width: 100%; }
+</style>
 </head>
 
 <body>
 
 <h3>Calculadora de Ventas al Detalle</h3>
 
-<table border="1" width="100%">
+<table>
 <thead>
 <tr>
 <th>Marca</th>
@@ -37,9 +42,11 @@
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+
 let productos = [];
 let marcas = [];
 
+// Cargar productos
 fetch(API, {
   method: "POST",
   body: JSON.stringify({ action: "productos" })
@@ -47,36 +54,48 @@ fetch(API, {
 .then(r => r.json())
 .then(data => {
   productos = data;
-  marcas = [...new Set(productos.map(p => p.marca))];
+
+  // 🔴 FILTRAR marcas vacías (SOLUCIÓN)
+  marcas = [...new Set(
+    productos
+      .map(p => p.marca)
+      .filter(m => m && m.trim() !== "")
+  )];
 });
 
+// Agregar fila
 function agregarFila() {
   const tr = document.createElement("tr");
 
-  // Marca
   const selMarca = document.createElement("select");
   selMarca.innerHTML = "<option value=''>-- Marca --</option>";
   marcas.forEach(m => {
     const o = document.createElement("option");
     o.value = m;
-    o.text = m;
+    o.textContent = m;
     selMarca.appendChild(o);
   });
 
-  // Producto
   const selProd = document.createElement("select");
   selProd.disabled = true;
   selProd.innerHTML = "<option value=''>-- Producto --</option>";
 
-  // Cantidad
   const qty = document.createElement("input");
   qty.type = "number";
+  qty.min = 1;
   qty.value = 1;
 
-  tr.innerHTML = "<td></td><td></td><td></td><td>₡0</td><td>₡0</td>";
-  tr.children[0].appendChild(selMarca);
-  tr.children[1].appendChild(selProd);
-  tr.children[2].appendChild(qty);
+  const tdPrecio = document.createElement("td");
+  tdPrecio.textContent = "₡0";
+
+  const tdTotal = document.createElement("td");
+  tdTotal.textContent = "₡0";
+
+  tr.appendChild(document.createElement("td")).appendChild(selMarca);
+  tr.appendChild(document.createElement("td")).appendChild(selProd);
+  tr.appendChild(document.createElement("td")).appendChild(qty);
+  tr.appendChild(tdPrecio);
+  tr.appendChild(tdTotal);
 
   selMarca.onchange = () => {
     selProd.innerHTML = "<option value=''>-- Producto --</option>";
@@ -87,7 +106,7 @@ function agregarFila() {
       .forEach(p => {
         const o = document.createElement("option");
         o.value = p.nombre;
-        o.text = p.nombre;
+        o.textContent = p.nombre;
         selProd.appendChild(o);
       });
 
@@ -100,6 +119,7 @@ function agregarFila() {
   document.getElementById("body").appendChild(tr);
 }
 
+// Calcular
 function calcular() {
   const filas = [...document.querySelectorAll("#body tr")].map(tr => ({
     producto: tr.children[1].firstChild.value,
@@ -112,14 +132,16 @@ function calcular() {
   })
   .then(r => r.json())
   .then(r => {
-    document.getElementById("totalU").innerText = r.totalUnidades;
-    document.getElementById("granT").innerText =
+    document.getElementById("totalU").textContent = r.totalUnidades;
+    document.getElementById("granT").textContent =
       "₡" + r.granTotal.toLocaleString("es-CR");
 
     r.filas.forEach((f, i) => {
       const tr = document.querySelectorAll("#body tr")[i];
-      tr.children[3].innerText = "₡" + f.precioUnit.toLocaleString("es-CR");
-      tr.children[4].innerText = "₡" + f.total.toLocaleString("es-CR");
+      tr.children[3].textContent =
+        "₡" + f.precioUnit.toLocaleString("es-CR");
+      tr.children[4].textContent =
+        "₡" + f.total.toLocaleString("es-CR");
     });
   });
 }
