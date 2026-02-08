@@ -11,67 +11,43 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   background:#f2f4f7;
 }
-.app{
-  max-width:1200px;
-  margin:16px auto;
-  padding:16px;
-}
+.app{max-width:1200px;margin:16px auto;padding:16px}
 .card{
-  background:#fff;
-  border-radius:16px;
+  background:#fff;border-radius:16px;
   box-shadow:0 10px 25px rgba(0,0,0,.08);
   padding:20px;
 }
 h2{
-  margin-top:0;
-  background:#2563eb;
-  color:#fff;
-  padding:14px 20px;
-  border-radius:12px;
+  margin:0 0 12px 0;
+  background:#2563eb;color:#fff;
+  padding:14px;border-radius:12px;
   text-align:center;
 }
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:12px;
-}
-th,td{
-  border-bottom:1px solid #e5e7eb;
-  padding:10px;
-}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid #e5e7eb;padding:10px}
 th{background:#f9fafb}
 select,input{
-  width:100%;
-  padding:8px;
+  width:100%;padding:8px;
   border:1px solid #d1d5db;
   border-radius:10px;
-  background:#f3f4f6;
   font-size:15px;
 }
-input[type=number]{
-  background:#fff;
-  text-align:center;
-}
+input[type=number]{text-align:center}
 .money{text-align:right;font-weight:500}
 button{
-  border:none;
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
+  border:none;padding:8px 12px;
+  border-radius:10px;cursor:pointer;
 }
-.add{margin-top:12px;background:#2563eb;color:#fff}
+.add{background:#2563eb;color:#fff;margin-top:10px}
 .del{background:#fee2e2;color:#b91c1c}
 .totals{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:14px;
-  margin-top:18px;
+  gap:14px;margin-top:18px
 }
 .box{
-  background:#f9fafb;
-  border-radius:14px;
-  padding:14px;
-  text-align:center;
+  background:#f9fafb;border-radius:14px;
+  padding:14px;text-align:center
 }
 .box strong{display:block;font-size:1.2rem;margin-top:6px}
 </style>
@@ -80,6 +56,7 @@ button{
 <body>
 <div class="app">
 <div class="card">
+
 <h2>Calculadora de Ventas al Detalle</h2>
 
 <table>
@@ -95,7 +72,7 @@ button{
 <tbody id="body"></tbody>
 </table>
 
-<button class="add" onclick="agregarFila()">＋ Agregar fila</button>
+<button class="add" onclick="agregarFila()">+ Agregar fila</button>
 
 <div class="totals">
 <div class="box">Total de productos<strong id="totalU">0</strong></div>
@@ -103,6 +80,7 @@ button{
 <div class="box">Total con descuento<strong id="gran">₡0</strong></div>
 <div class="box">Descuento aplicado<strong id="pct">0%</strong></div>
 </div>
+
 </div>
 </div>
 
@@ -122,18 +100,19 @@ function agregarFila(){
   const tr=document.createElement("tr");
 
   const marca=document.createElement("select");
-  marca.innerHTML="<option></option>";
+  marca.innerHTML="<option value=''></option>";
   marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
 
   const producto=document.createElement("select");
-  producto.innerHTML="<option></option>";
+  producto.innerHTML="<option value=''></option>";
   producto.disabled=true;
 
   const cantidad=document.createElement("input");
   cantidad.type="number";
-  cantidad.min=0;
+  cantidad.min=1;
   cantidad.max=99;
   cantidad.step=1;
+  cantidad.value="";
 
   const precio=document.createElement("td");
   precio.className="money";
@@ -151,30 +130,35 @@ function agregarFila(){
   tr.appendChild(td(borrar));
 
   marca.onchange=()=>{
-    producto.innerHTML="<option></option>";
+    producto.innerHTML="<option value=''></option>";
     producto.disabled=!marca.value;
     productos.filter(p=>p.marca===marca.value)
-      .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
+      .forEach(p=>producto.innerHTML+=`<option value="${p.nombre}">${p.nombre}</option>`);
+    precio.textContent="₡0";
     calcular();
   };
 
-  producto.onchange=calcular;
+  producto.onchange=()=>{
+    const p=productos.find(x=>x.nombre===producto.value);
+    precio.textContent=p?"₡"+p.precioLista.toLocaleString("es-CR"):"₡0";
+    calcular();
+  };
+
   cantidad.oninput=calcular;
 
   document.getElementById("body").appendChild(tr);
 }
 
-function td(el){
-  const td=document.createElement("td");
-  td.appendChild(el);
-  return td;
-}
+function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
 
 function calcular(){
-  const filas=[...document.querySelectorAll("#body tr")].map(tr=>({
-    producto: tr.children[1].value,
-    cantidad: Number(tr.children[2].value||0)
-  }));
+  const filas=[...document.querySelectorAll("#body tr")]
+    .map(tr=>{
+      const prod=tr.children[1].value;
+      const qty=Number(tr.children[2].value);
+      return prod && qty>0 ? {producto:prod,cantidad:qty} : null;
+    })
+    .filter(Boolean);
 
   fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items:filas})})
   .then(r=>r.json())
@@ -183,12 +167,6 @@ function calcular(){
     totalSin.textContent="₡"+r.totalSinDescuento.toLocaleString("es-CR");
     gran.textContent="₡"+r.granTotal.toLocaleString("es-CR");
     pct.textContent=r.descuentoPct.toFixed(1)+"%";
-
-    [...document.querySelectorAll("#body tr")].forEach(tr=>{
-      const prod=tr.children[1].value;
-      const p=productos.find(x=>x.nombre===prod);
-      tr.children[3].textContent=p?"₡"+p.precioLista.toLocaleString("es-CR"):"₡0";
-    });
   });
 }
 </script>
