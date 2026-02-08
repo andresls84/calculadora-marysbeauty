@@ -34,7 +34,7 @@ body{
   margin-bottom:18px;
 }
 .header img{
-  height:64px; /* MÁS GRANDE EN LA CALCULADORA */
+  height:64px;
 }
 
 table{width:100%;border-collapse:collapse}
@@ -77,7 +77,7 @@ button{
   text-align:center;
 }
 .box strong{display:block;font-size:1.2rem;margin-top:6px}
-.whatsapp{
+.download{
   background:#25D366;
   color:#fff;
   margin-top:16px;
@@ -116,7 +116,7 @@ button{
   <div class="box">Descuento aplicado<strong id="tP">0%</strong></div>
 </div>
 
-<button class="whatsapp" onclick="generarResumen()">📸 Enviar resumen por WhatsApp</button>
+<button class="download" onclick="generarResumen()">📥 Descargar resumen</button>
 
 </div>
 </div>
@@ -132,16 +132,14 @@ button{
   color:#000;
 ">
 
-  <!-- LOGO MÁS PEQUEÑO EN COTIZACIÓN -->
   <div style="text-align:center;margin-bottom:8px;">
     <img src="./LogoRosado.jpg" style="max-width:120px;">
   </div>
 
-  <!-- INFO TIENDA -->
   <div style="text-align:center;font-size:13px;margin-bottom:10px;">
     <div>Alajuela, Costa Rica</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
-      <img src="./LogoWhatsApp.avif" style="height:16px;">
+      <img src="./LogoWhatsApp.png" style="height:16px;">
       <span>6402-3753</span>
     </div>
   </div>
@@ -282,18 +280,11 @@ function generarResumen(){
   document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
 
   html2canvas(document.getElementById("resumen"),{scale:2})
-    .then(c=>{
+    .then(canvas=>{
       const a=document.createElement("a");
-      a.download="resumen_marys_beauty.png";
-      a.href=c.toDataURL();
+      a.download="cotizacion_marys_beauty.png";
+      a.href=canvas.toDataURL("image/png");
       a.click();
-
-      window.open(
-        "https://wa.me/?text="+encodeURIComponent(
-          "Cotización Mary’s Beauty\nTotal a pagar: "+document.getElementById("tF").textContent
-        ),
-        "_blank"
-      );
     });
 }
 </script>
