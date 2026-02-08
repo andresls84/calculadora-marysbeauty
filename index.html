@@ -18,10 +18,9 @@ body{
   padding:20px;
 }
 h2{
-  margin:0 0 12px 0;
   background:#2563eb;color:#fff;
   padding:14px;border-radius:12px;
-  text-align:center;
+  text-align:center;margin:0 0 12px 0;
 }
 table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid #e5e7eb;padding:10px}
@@ -112,11 +111,10 @@ function agregarFila(){
   cantidad.min=1;
   cantidad.max=99;
   cantidad.step=1;
-  cantidad.value="";
 
-  const precio=document.createElement("td");
-  precio.className="money";
-  precio.textContent="₡0";
+  const precioTd=document.createElement("td");
+  precioTd.className="money";
+  precioTd.textContent="₡0";
 
   const borrar=document.createElement("button");
   borrar.textContent="🗑";
@@ -126,21 +124,28 @@ function agregarFila(){
   tr.appendChild(td(marca));
   tr.appendChild(td(producto));
   tr.appendChild(td(cantidad));
-  tr.appendChild(precio);
+  tr.appendChild(precioTd);
   tr.appendChild(td(borrar));
 
   marca.onchange=()=>{
     producto.innerHTML="<option value=''></option>";
     producto.disabled=!marca.value;
     productos.filter(p=>p.marca===marca.value)
-      .forEach(p=>producto.innerHTML+=`<option value="${p.nombre}">${p.nombre}</option>`);
-    precio.textContent="₡0";
+      .forEach(p=>{
+        const o=document.createElement("option");
+        o.value=p.nombre;
+        o.textContent=p.nombre;
+        producto.appendChild(o);
+      });
+    precioTd.textContent="₡0";
     calcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.nombre===producto.value);
-    precio.textContent=p?"₡"+p.precioLista.toLocaleString("es-CR"):"₡0";
+    precioTd.textContent = p
+      ? "₡"+p.precioLista.toLocaleString("es-CR")
+      : "₡0";
     calcular();
   };
 
@@ -149,7 +154,11 @@ function agregarFila(){
   document.getElementById("body").appendChild(tr);
 }
 
-function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
+function td(el){
+  const td=document.createElement("td");
+  td.appendChild(el);
+  return td;
+}
 
 function calcular(){
   const filas=[...document.querySelectorAll("#body tr")]
