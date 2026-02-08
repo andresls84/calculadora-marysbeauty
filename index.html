@@ -26,19 +26,38 @@ table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid #e5e7eb;padding:10px}
 th{background:#f9fafb}
 select,input{
-  width:100%;padding:8px;
+  padding:8px;
   border:1px solid #d1d5db;
   border-radius:10px;
   font-size:15px;
 }
-input[type=number]{text-align:center}
+select{width:100%}
 .money{text-align:right;font-weight:500}
 button{
-  border:none;padding:8px 12px;
-  border-radius:10px;cursor:pointer;
+  border:none;
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
 }
 .add{background:#2563eb;color:#fff;margin-top:10px}
 .del{background:#fee2e2;color:#b91c1c}
+
+.qty{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.qty button{
+  width:32px;
+  height:32px;
+  font-size:18px;
+  background:#e5e7eb;
+}
+.qty input{
+  width:60px;
+  text-align:center;
+}
+
 .totals{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
@@ -87,7 +106,10 @@ button{
 const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
 let productos=[], marcas=[];
 
-fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
+fetch(API,{
+  method:"POST",
+  body:JSON.stringify({action:"productos"})
+})
 .then(r=>r.json())
 .then(data=>{
   productos=data;
@@ -106,11 +128,23 @@ function agregarFila(){
   producto.innerHTML="<option value=''></option>";
   producto.disabled=true;
 
+  const qtyWrap=document.createElement("div");
+  qtyWrap.className="qty";
+
+  const menos=document.createElement("button");
+  menos.textContent="−";
+
   const cantidad=document.createElement("input");
   cantidad.type="number";
   cantidad.min=1;
   cantidad.max=99;
-  cantidad.step=1;
+
+  const mas=document.createElement("button");
+  mas.textContent="＋";
+
+  qtyWrap.appendChild(menos);
+  qtyWrap.appendChild(cantidad);
+  qtyWrap.appendChild(mas);
 
   const precioTd=document.createElement("td");
   precioTd.className="money";
@@ -123,7 +157,7 @@ function agregarFila(){
 
   tr.appendChild(td(marca));
   tr.appendChild(td(producto));
-  tr.appendChild(td(cantidad));
+  tr.appendChild(td(qtyWrap));
   tr.appendChild(precioTd);
   tr.appendChild(td(borrar));
 
@@ -149,6 +183,18 @@ function agregarFila(){
     calcular();
   };
 
+  menos.onclick=()=>{
+    let v=Number(cantidad.value||1);
+    if(v>1) cantidad.value=v-1;
+    calcular();
+  };
+
+  mas.onclick=()=>{
+    let v=Number(cantidad.value||0);
+    if(v<99) cantidad.value=v+1;
+    calcular();
+  };
+
   cantidad.oninput=calcular;
 
   document.getElementById("body").appendChild(tr);
@@ -164,12 +210,15 @@ function calcular(){
   const filas=[...document.querySelectorAll("#body tr")]
     .map(tr=>{
       const prod=tr.children[1].value;
-      const qty=Number(tr.children[2].value);
+      const qty=Number(tr.querySelector("input").value);
       return prod && qty>0 ? {producto:prod,cantidad:qty} : null;
     })
     .filter(Boolean);
 
-  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items:filas})})
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify({action:"calcularDetalle",items:filas})
+  })
   .then(r=>r.json())
   .then(r=>{
     totalU.textContent=r.totalUnidades;
