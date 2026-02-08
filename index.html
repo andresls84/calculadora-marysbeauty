@@ -13,14 +13,18 @@ body{
 }
 .app{max-width:1200px;margin:16px auto;padding:16px}
 .card{
-  background:#fff;border-radius:16px;
+  background:#fff;
+  border-radius:16px;
   box-shadow:0 10px 25px rgba(0,0,0,.08);
   padding:20px;
 }
 h2{
-  background:#2563eb;color:#fff;
-  padding:14px;border-radius:12px;
-  text-align:center;margin:0 0 12px 0;
+  background:#2563eb;
+  color:#fff;
+  padding:14px;
+  border-radius:12px;
+  text-align:center;
+  margin:0 0 12px 0;
 }
 table{width:100%;border-collapse:collapse}
 th,td{border-bottom:1px solid #e5e7eb;padding:10px}
@@ -61,13 +65,20 @@ button{
 .totals{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:14px;margin-top:18px
+  gap:14px;
+  margin-top:18px;
 }
 .box{
-  background:#f9fafb;border-radius:14px;
-  padding:14px;text-align:center
+  background:#f9fafb;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
 }
-.box strong{display:block;font-size:1.2rem;margin-top:6px}
+.box strong{
+  display:block;
+  font-size:1.2rem;
+  margin-top:6px;
+}
 </style>
 </head>
 
@@ -164,7 +175,8 @@ function agregarFila(){
   marca.onchange=()=>{
     producto.innerHTML="<option value=''></option>";
     producto.disabled=!marca.value;
-    productos.filter(p=>p.marca===marca.value)
+    productos
+      .filter(p=>p.marca===marca.value)
       .forEach(p=>{
         const o=document.createElement("option");
         o.value=p.nombre;
@@ -172,14 +184,19 @@ function agregarFila(){
         producto.appendChild(o);
       });
     precioTd.textContent="₡0";
+    cantidad.value="";
     calcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.nombre===producto.value);
-    precioTd.textContent = p
-      ? "₡"+p.precioLista.toLocaleString("es-CR")
-      : "₡0";
+    if(p){
+      precioTd.textContent="₡"+p.precioLista.toLocaleString("es-CR");
+      cantidad.value=1;           // ✅ CLAVE
+    }else{
+      precioTd.textContent="₡0";
+      cantidad.value="";
+    }
     calcular();
   };
 
