@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Detalle</title>
+</head>
+
+<body>
+
+<h3>Calculadora de Ventas al Detalle</h3>
+
+<table border="1" width="100%">
+<thead>
+<tr>
+<th>Marca</th>
+<th>Producto</th>
+<th>Cantidad</th>
+<th>Precio Unitario</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody id="body"></tbody>
+
+<tfoot>
+<tr>
+<td colspan="2">Total Productos</td>
+<td id="totalU">0</td>
+<td>Gran Total</td>
+<td id="granT">₡0</td>
+</tr>
+</tfoot>
+</table>
+
+<button onclick="agregarFila()">➕ Agregar fila</button>
+
+<script>
+const API = "PEGA_AQUI_TU_API";
+let productos = [];
+let marcas = [];
+
+fetch(API, {
+  method: "POST",
+  body: JSON.stringify({ action: "productos" })
+})
+.then(r => r.json())
+.then(data => {
+  productos = data;
+  marcas = [...new Set(productos.map(p => p.marca))];
+});
+
+function agregarFila() {
+  const tr = document.createElement("tr");
+
+  // Marca
+  const selMarca = document.createElement("select");
+  selMarca.innerHTML = "<option value=''>-- Marca --</option>";
+  marcas.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m;
+    o.text = m;
+    selMarca.appendChild(o);
+  });
+
+  // Producto
+  const selProd = document.createElement("select");
+  selProd.disabled = true;
+  selProd.innerHTML = "<option value=''>-- Producto --</option>";
+
+  // Cantidad
+  const qty = document.createElement("input");
+  qty.type = "number";
+  qty.value = 1;
+
+  tr.innerHTML = "<td></td><td></td><td></td><td>₡0</td><td>₡0</td>";
+  tr.children[0].appendChild(selMarca);
+  tr.children[1].appendChild(selProd);
+  tr.children[2].appendChild(qty);
+
+  selMarca.onchange = () => {
+    selProd.innerHTML = "<option value=''>-- Producto --</option>";
+    selProd.disabled = !selMarca.value;
+
+    productos
+      .filter(p => p.marca === selMarca.value)
+      .forEach(p => {
+        const o = document.createElement("option");
+        o.value = p.nombre;
+        o.text = p.nombre;
+        selProd.appendChild(o);
+      });
+
+    calcular();
+  };
+
+  selProd.onchange = calcular;
+  qty.oninput = calcular;
+
+  document.getElementById("body").appendChild(tr);
+}
+
+function calcular() {
+  const filas = [...document.querySelectorAll("#body tr")].map(tr => ({
+    producto: tr.children[1].firstChild.value,
+    cantidad: Number(tr.children[2].firstChild.value)
+  }));
+
+  fetch(API, {
+    method: "POST",
+    body: JSON.stringify({ action: "calcularDetalle", items: filas })
+  })
+  .then(r => r.json())
+  .then(r => {
+    document.getElementById("totalU").innerText = r.totalUnidades;
+    document.getElementById("granT").innerText =
+      "₡" + r.granTotal.toLocaleString("es-CR");
+
+    r.filas.forEach((f, i) => {
+      const tr = document.querySelectorAll("#body tr")[i];
+      tr.children[3].innerText = "₡" + f.precioUnit.toLocaleString("es-CR");
+      tr.children[4].innerText = "₡" + f.total.toLocaleString("es-CR");
+    });
+  });
+}
+</script>
+
+</body>
+</html>
