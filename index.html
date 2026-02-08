@@ -20,18 +20,23 @@ body{
   box-shadow:0 12px 30px rgba(0,0,0,.08);
   padding:20px;
 }
+
+/* HEADER */
 .header{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:14px;
+  gap:18px;
   background:#e6007e;
   color:#fff;
-  padding:16px;
-  border-radius:14px;
-  margin-bottom:16px;
+  padding:18px;
+  border-radius:16px;
+  margin-bottom:18px;
 }
-.header img{height:48px}
+.header img{
+  height:64px; /* MÁS GRANDE EN LA CALCULADORA */
+}
+
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
 th{background:#f9fafb}
@@ -117,12 +122,33 @@ button{
 </div>
 
 <!-- RESUMEN OCULTO -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
-  <div style="text-align:center;margin-bottom:10px;">
-    <img src="./LogoRosado.jpg" style="max-width:160px">
+<div id="resumen" style="
+  position:absolute;
+  left:-9999px;
+  width:420px;
+  background:#ffffff;
+  padding:20px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
+  color:#000;
+">
+
+  <!-- LOGO MÁS PEQUEÑO EN COTIZACIÓN -->
+  <div style="text-align:center;margin-bottom:8px;">
+    <img src="./LogoRosado.jpg" style="max-width:120px;">
   </div>
 
-  <h3 style="text-align:center;margin:0 0 10px;">Resumen de cotización</h3>
+  <!-- INFO TIENDA -->
+  <div style="text-align:center;font-size:13px;margin-bottom:10px;">
+    <div>Alajuela, Costa Rica</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
+      <img src="./LogoWhatsApp.avif" style="height:16px;">
+      <span>6402-3753</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 style="text-align:center;margin:8px 0;">Resumen de cotización</h3>
   <p id="r-fecha"></p>
   <p id="r-vence"></p>
 
@@ -134,7 +160,9 @@ button{
 
   <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
   <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
-  <p style="font-size:18px"><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
+  <p style="font-size:18px">
+    <strong>Total a pagar: <span id="r-total-final"></span></strong>
+  </p>
 
   <p style="font-size:12px">
     Los productos están sujetos a disponibilidad al momento de la compra.
