@@ -31,9 +31,7 @@ body{
   border-radius:14px;
   margin-bottom:16px;
 }
-.header img{
-  height:48px;
-}
+.header img{height:48px}
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
 th{background:#f9fafb}
@@ -119,30 +117,16 @@ button{
 </div>
 
 <!-- RESUMEN OCULTO -->
-<div id="resumen" style="
-  position:absolute;
-  left:-9999px;
-  width:420px;
-  background:#ffffff;
-  padding:20px;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
-">
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
   <div style="text-align:center;margin-bottom:10px;">
-    <img src="./LogoRosado.jpg" style="max-width:160px;">
+    <img src="./LogoRosado.jpg" style="max-width:160px">
   </div>
 
   <h3 style="text-align:center;margin:0 0 10px;">Resumen de cotización</h3>
-
   <p id="r-fecha"></p>
   <p id="r-vence"></p>
 
-  <table style="width:100%;border-collapse:collapse;font-size:14px;">
-    <thead>
-      <tr>
-        <th style="text-align:left;border-bottom:1px solid #ccc;">Producto</th>
-        <th style="text-align:center;border-bottom:1px solid #ccc;">Cant.</th>
-      </tr>
-    </thead>
+  <table style="width:100%;font-size:14px;border-collapse:collapse">
     <tbody id="resumen-body"></tbody>
   </table>
 
@@ -150,26 +134,22 @@ button{
 
   <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
   <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
-  <p style="font-size:18px;"><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
+  <p style="font-size:18px"><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
 
-  <p style="font-size:12px;margin-top:10px;">
+  <p style="font-size:12px">
     Los productos están sujetos a disponibilidad al momento de la compra.
   </p>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
-let productos = [];
-let marcas = [];
+const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+let productos=[],marcas=[];
 
-fetch(API,{
-  method:"POST",
-  body:JSON.stringify({action:"productos"})
-})
+fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
 .then(r=>r.json())
 .then(data=>{
-  productos = data;
-  marcas = [...new Set(productos.map(p=>p.marca))];
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca))];
   for(let i=0;i<6;i++) agregarFila();
 });
 
@@ -186,26 +166,16 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
-
-  const menos=document.createElement("button");
-  menos.textContent="−";
-
-  const cantidad=document.createElement("input");
-  cantidad.type="number";
-  cantidad.min=1;
-
-  const mas=document.createElement("button");
-  mas.textContent="＋";
-
+  const menos=document.createElement("button");menos.textContent="−";
+  const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
+  const mas=document.createElement("button");mas.textContent="＋";
   qtyBox.append(menos,cantidad,mas);
 
   const precio=document.createElement("td");
-  precio.className="money";
-  precio.textContent="₡0";
+  precio.className="money";precio.textContent="₡0";
 
   const borrar=document.createElement("button");
-  borrar.textContent="🗑";
-  borrar.className="del";
+  borrar.textContent="🗑";borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
@@ -215,17 +185,12 @@ function agregarFila(){
     producto.disabled=!marca.value;
     productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
-    cantidad.value="";
-    precio.textContent="₡0";
-    recalcular();
+    cantidad.value="";precio.textContent="₡0";recalcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.nombre===producto.value);
-    if(p){
-      cantidad.value=1;
-      precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");
-    }
+    if(p){cantidad.value=1;precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");}
     recalcular();
   };
 
@@ -236,11 +201,7 @@ function agregarFila(){
   document.getElementById("body").appendChild(tr);
 }
 
-function td(el){
-  const td=document.createElement("td");
-  td.appendChild(el);
-  return td;
-}
+function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
 
 function recalcular(){
   const items=[];
@@ -250,60 +211,40 @@ function recalcular(){
     if(prod && qty>0) items.push({producto:prod,cantidad:qty});
   });
 
-  fetch(API,{
-    method:"POST",
-    body:JSON.stringify({action:"calcularDetalle",items})
-  })
+  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
   .then(r=>r.json())
   .then(res=>{
-    document.getElementById("tU").textContent=res.totalUnidades;
-    document.getElementById("tS").textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
-    document.getElementById("tF").textContent="₡"+res.granTotal.toLocaleString("es-CR");
-    document.getElementById("tP").textContent=res.descuentoPct.toFixed(1)+"%";
+    tU.textContent=res.totalUnidades;
+    tS.textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
+    tF.textContent="₡"+res.granTotal.toLocaleString("es-CR");
+    tP.textContent=res.descuentoPct.toFixed(1)+"%";
   });
 }
 
 function generarResumen(){
-  const bodyResumen=document.getElementById("resumen-body");
-  bodyResumen.innerHTML="";
-
+  const rb=document.getElementById("resumen-body");
+  rb.innerHTML="";
   document.querySelectorAll("#body tr").forEach(tr=>{
-    const prod=tr.children[1].querySelector("select").value;
-    const qty=tr.querySelector("input").value;
-    if(prod && qty>0){
-      bodyResumen.innerHTML+=`
-        <tr>
-          <td style="padding:6px 0;">${prod}</td>
-          <td style="text-align:center;">${qty}</td>
-        </tr>`;
-    }
+    const p=tr.children[1].querySelector("select").value;
+    const q=tr.querySelector("input").value;
+    if(p && q>0) rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
   });
 
-  const hoy=new Date();
-  const vence=new Date();
-  vence.setDate(hoy.getDate()+8);
+  const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
+  r-fecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
+  r-vence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
+  r-total-sin.textContent=tS.textContent;
+  r-descuento.textContent=tP.textContent;
+  r-total-final.textContent=tF.textContent;
 
-  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
-  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
-
-  document.getElementById("r-total-sin").textContent=document.getElementById("tS").textContent;
-  document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
-  document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
-
-  html2canvas(document.getElementById("resumen"),{scale:2})
-    .then(canvas=>{
-      const link=document.createElement("a");
-      link.download="resumen_marys_beauty.png";
-      link.href=canvas.toDataURL("image/png");
-      link.click();
-
-      window.open(
-        "https://wa.me/?text="+encodeURIComponent(
-          "Cotización Mary’s Beauty\nTotal: "+document.getElementById("tF").textContent
-        ),
-        "_blank"
-      );
-    });
+  html2canvas(resumen,{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.download="resumen_marys_beauty.png";
+    a.href=c.toDataURL();a.click();
+    window.open("https://wa.me/?text="+encodeURIComponent(
+      "Cotización Mary’s Beauty\nTotal a pagar: "+tF.textContent
+    ),"_blank");
+  });
 }
 </script>
 </body>
