@@ -127,7 +127,7 @@ button{
 <script>
 const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
 
-let productos=[],marcas=[];
+let productos=[], marcas=[];
 
 fetch(API,{
   method:"POST",
@@ -187,8 +187,6 @@ function agregarFila(){
     productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
     cantidad.value="";
-    precioMayorista.textContent="₡0";
-    precioDetalle.textContent="₡0";
     recalcular();
   };
 
@@ -212,9 +210,14 @@ function td(el){
 
 function recalcular(){
   let totalUnidades=0;
+
   document.querySelectorAll("#body tr").forEach(tr=>{
     totalUnidades+=Number(tr.querySelector("input").value||0);
   });
+
+  let nivel="6";
+  if(totalUnidades>=24) nivel="24";
+  else if(totalUnidades>=12) nivel="12";
 
   let total=0;
 
@@ -226,9 +229,10 @@ function recalcular(){
     const fila=productos.find(p=>p.producto===prod);
     if(!fila) return;
 
-    let precioUnit=fila.precio_6_11;
-    if(totalUnidades>=12) precioUnit=fila.precio_12;
-    if(qty>=24) precioUnit=fila.precio_24;
+    let precioUnit =
+      nivel==="24" ? fila.precio_24 :
+      nivel==="12" ? fila.precio_12 :
+      fila.precio_6_11;
 
     tr.children[3].textContent="₡"+precioUnit.toLocaleString("es-CR");
     tr.children[4].textContent="₡"+fila.precio_6_11.toLocaleString("es-CR");
