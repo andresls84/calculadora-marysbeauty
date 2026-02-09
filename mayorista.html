@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Mayorista</title>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+  background:#f2f4f7;
+}
+.app{max-width:1200px;margin:20px auto;padding:16px}
+.card{
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  padding:20px;
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  background:#111827;
+  color:#fff;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+  text-align:center;
+}
+.header img{height:90px}
+.header h2{margin:0;font-size:1.6rem}
+
+/* TABLA */
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #e5e7eb}
+th{background:#f9fafb}
+select,input{
+  width:100%;
+  padding:8px;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  font-size:15px;
+}
+.money{text-align:right;font-weight:600}
+
+/* BOTONES */
+button{
+  border:none;
+  padding:10px 14px;
+  border-radius:12px;
+  cursor:pointer;
+}
+.add{background:#111827;color:#fff;margin-top:12px}
+.del{background:#fee2e2;color:#b91c1c}
+
+/* CANTIDAD */
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{
+  width:32px;height:32px;
+  font-size:18px;
+  background:#e5e7eb;
+  border-radius:8px;
+}
+.qty input{width:70px;text-align:center}
+
+/* TOTALES */
+.totals{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+.box{
+  background:#f9fafb;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+}
+.box strong{display:block;font-size:1.3rem;margin-top:6px}
+
+/* ACCIONES */
+.actions{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.img-btn{background:#2563eb;color:#fff}
+.wa-btn{background:#25D366;color:#fff}
+</style>
+</head>
+
+<body>
+<div class="app">
+<div class="card">
+
+<div class="header">
+  <img src="./LogoBlanco.jpg" alt="Mary’s Beauty">
+  <h2>Calculadora de Ventas al Por Mayor</h2>
+</div>
+
+<table>
+<thead>
+<tr>
+  <th>Marca</th>
+  <th>Producto</th>
+  <th>Cantidad</th>
+  <th>Acción</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
+</table>
+
+<button class="add" onclick="agregarFila()">+ Agregar fila</button>
+
+<div class="totals">
+  <div class="box">
+    Total de productos
+    <strong id="tU">0</strong>
+  </div>
+  <div class="box">
+    Total a pagar
+    <strong id="tT">₡0</strong>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="img-btn" onclick="generarImagen()">📸 Descargar imagen</button>
+  <button class="wa-btn" onclick="abrirWhatsApp()">💬 Abrir WhatsApp</button>
+</div>
+
+</div>
+</div>
+
+<!-- RESUMEN OCULTO -->
+<div id="resumen" style="
+  position:absolute;
+  left:-9999px;
+  width:420px;
+  background:#ffffff;
+  padding:20px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
+  color:#000;
+">
+  <div style="text-align:center;margin-bottom:10px">
+    <img src="./LogoBlanco.jpg" style="max-width:140px">
+    <div style="font-size:13px">Alajuela, Costa Rica</div>
+    <div style="font-size:13px">WhatsApp: 6402-3753</div>
+  </div>
+
+  <hr>
+
+  <h3 style="text-align:center">Resumen Mayorista</h3>
+
+  <table style="width:100%;font-size:14px;border-collapse:collapse">
+    <tbody id="resumen-body"></tbody>
+  </table>
+
+  <hr>
+
+  <p>Total de productos: <strong id="r-unidades"></strong></p>
+  <p style="font-size:18px">
+    Total a pagar:<br>
+    <strong id="r-total"></strong>
+  </p>
+
+  <p style="font-size:12px">
+    Precios sujetos a disponibilidad.
+  </p>
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+
+let productos=[],marcas=[];
+
+fetch(API,{
+  method:"POST",
+  body:JSON.stringify({action:"productosMayorista"})
+})
+.then(r=>r.json())
+.then(data=>{
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca))];
+  for(let i=0;i<4;i++) agregarFila();
+});
+
+function agregarFila(){
+  const tr=document.createElement("tr");
+
+  const marca=document.createElement("select");
+  marca.innerHTML="<option></option>";
+  marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
+
+  const producto=document.createElement("select");
+  producto.innerHTML="<option></option>";
+  producto.disabled=true;
+
+  const qtyBox=document.createElement("div");
+  qtyBox.className="qty";
+
+  const menos=document.createElement("button");menos.textContent="−";
+  const cantidad=document.createElement("input");
+  cantidad.type="number";cantidad.min=1;
+  const mas=document.createElement("button");mas.textContent="＋";
+
+  qtyBox.append(menos,cantidad,mas);
+
+  const borrar=document.createElement("button");
+  borrar.textContent="🗑";borrar.className="del";
+  borrar.onclick=()=>{tr.remove();recalcular();};
+
+  tr.append(td(marca),td(producto),td(qtyBox),td(borrar));
+
+  marca.onchange=()=>{
+    producto.innerHTML="<option></option>";
+    producto.disabled=!marca.value;
+    productos.filter(p=>p.marca===marca.value)
+      .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
+    cantidad.value="";
+    recalcular();
+  };
+
+  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
+  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
+  cantidad.oninput=recalcular;
+
+  document.getElementById("body").appendChild(tr);
+}
+
+function td(el){
+  const td=document.createElement("td");
+  td.appendChild(el);
+  return td;
+}
+
+function recalcular(){
+  const items=[];
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    const prod=tr.children[1].querySelector("select").value;
+    const qty=Number(tr.querySelector("input").value);
+    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
+  });
+
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify({action:"calcularMayorista",items})
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    document.getElementById("tU").textContent=res.totalUnidades;
+    document.getElementById("tT").textContent="₡"+res.total.toLocaleString("es-CR");
+  });
+}
+
+function generarImagen(){
+  const rb=document.getElementById("resumen-body");
+  rb.innerHTML="";
+
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    const p=tr.children[1].querySelector("select").value;
+    const q=tr.querySelector("input").value;
+    if(p && q>0){
+      rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    }
+  });
+
+  document.getElementById("r-unidades").textContent=document.getElementById("tU").textContent;
+  document.getElementById("r-total").textContent=document.getElementById("tT").textContent;
+
+  html2canvas(document.getElementById("resumen"),{scale:2})
+  .then(c=>{
+    const a=document.createElement("a");
+    a.download="cotizacion_mayorista.png";
+    a.href=c.toDataURL("image/png");
+    a.click();
+  });
+}
+
+function abrirWhatsApp(){
+  window.open("https://wa.me/","_blank");
+}
+</script>
+
+</body>
+</html>
