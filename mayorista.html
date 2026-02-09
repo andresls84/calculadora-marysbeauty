@@ -101,6 +101,7 @@ button{
   <th>Producto</th>
   <th>Cantidad</th>
   <th>Precio Mayorista</th>
+  <th>Precio Detalle</th>
   <th>Acción</th>
 </tr>
 </thead>
@@ -152,51 +153,52 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
-
   const menos=document.createElement("button");menos.textContent="−";
   const cantidad=document.createElement("input");
-  cantidad.type="number";
-  cantidad.min=1;
-
+  cantidad.type="number";cantidad.min=1;
   const mas=document.createElement("button");mas.textContent="＋";
-
   qtyBox.append(menos,cantidad,mas);
 
-  const precio=document.createElement("td");
-  precio.className="money";
-  precio.textContent="₡0";
+  const precioMayorista=document.createElement("td");
+  precioMayorista.className="money";
+  precioMayorista.textContent="₡0";
+
+  const precioDetalle=document.createElement("td");
+  precioDetalle.className="money";
+  precioDetalle.textContent="₡0";
 
   const borrar=document.createElement("button");
   borrar.textContent="🗑";
   borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
-  tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
+  tr.append(
+    td(marca),
+    td(producto),
+    td(qtyBox),
+    precioMayorista,
+    precioDetalle,
+    td(borrar)
+  );
 
   marca.onchange=()=>{
     producto.innerHTML="<option></option>";
     producto.disabled=!marca.value;
-    productos
-      .filter(p=>p.marca===marca.value)
+    productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
     cantidad.value="";
-    precio.textContent="₡0";
+    precioMayorista.textContent="₡0";
+    precioDetalle.textContent="₡0";
     recalcular();
   };
 
   producto.onchange=()=>{
-    cantidad.value=1;          // ✅ CLAVE
-    recalcular();              // ✅ CLAVE
+    cantidad.value=1;
+    recalcular();
   };
 
-  menos.onclick=()=>{
-    cantidad.value=Math.max(1,(+cantidad.value||1)-1);
-    recalcular();
-  };
-  mas.onclick=()=>{
-    cantidad.value=(+cantidad.value||0)+1;
-    recalcular();
-  };
+  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
+  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
   cantidad.oninput=recalcular;
 
   document.getElementById("body").appendChild(tr);
@@ -224,12 +226,14 @@ function recalcular(){
     const fila=productos.find(p=>p.producto===prod);
     if(!fila) return;
 
-    let precioUnitario=fila.precio_6_11;
-    if(totalUnidades>=12) precioUnitario=fila.precio_12;
-    if(qty>=24) precioUnitario=fila.precio_24;
+    let precioUnit=fila.precio_6_11;
+    if(totalUnidades>=12) precioUnit=fila.precio_12;
+    if(qty>=24) precioUnit=fila.precio_24;
 
-    tr.children[3].textContent="₡"+precioUnitario.toLocaleString("es-CR");
-    total+=precioUnitario*qty;
+    tr.children[3].textContent="₡"+precioUnit.toLocaleString("es-CR");
+    tr.children[4].textContent="₡"+fila.precio_6_11.toLocaleString("es-CR");
+
+    total+=precioUnit*qty;
   });
 
   document.getElementById("tU").textContent=totalUnidades;
