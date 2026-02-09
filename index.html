@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora Detalle – Mary’s Beauty</title>
+<title>Calculadora Detalle</title>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -21,17 +21,17 @@ body{
   padding:20px;
 }
 .header{
-  background:#e6007e;
-  border-radius:14px;
-  padding:14px;
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:14px;
+  gap:18px;
+  background:#e6007e;
+  color:#fff;
+  padding:18px;
+  border-radius:16px;
   margin-bottom:18px;
 }
-.header img{height:46px}
-.header h2{color:#fff;margin:0}
+.header img{height:64px}
 
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
@@ -76,13 +76,13 @@ button{
 .box strong{display:block;font-size:1.2rem;margin-top:6px}
 
 .actions{
-  margin-top:20px;
+  margin-top:18px;
   display:flex;
   gap:12px;
   flex-wrap:wrap;
 }
 .download{background:#2563eb;color:#fff}
-.whatsapp{background:#22c55e;color:#fff}
+.whatsapp{background:#25D366;color:#fff}
 </style>
 </head>
 
@@ -91,7 +91,7 @@ button{
 <div class="card">
 
 <div class="header">
-  <img src="https://raw.githubusercontent.com/andresls84/calculadora-marysbeauty/main/LogoRosado.jpg">
+  <img src="./LogoRosado.jpg" alt="Mary’s Beauty">
   <h2>Calculadora de Ventas al Detalle</h2>
 </div>
 
@@ -118,7 +118,7 @@ button{
 </div>
 
 <div class="actions">
-  <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
+  <button class="download" onclick="generarResumen()">📥 Descargar cotización</button>
   <button class="whatsapp" onclick="abrirWhatsApp()">🟢 Abrir WhatsApp</button>
 </div>
 
@@ -126,30 +126,40 @@ button{
 </div>
 
 <!-- RESUMEN OCULTO -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;padding:20px;background:#fff;font-family:Arial">
-  <div style="text-align:center">
-    <img src="https://raw.githubusercontent.com/andresls84/calculadora-marysbeauty/main/LogoRosado.jpg" style="height:90px">
-    <p><strong>Alajuela, Costa Rica</strong></p>
-    <p style="display:flex;justify-content:center;align-items:center;gap:6px;">
-      <img src="https://raw.githubusercontent.com/andresls84/calculadora-marysbeauty/main/LogoWhatsApp.png" style="height:18px">
-      <strong>6402-3753</strong>
-    </p>
-    <hr>
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
+  <div style="text-align:center;margin-bottom:8px;">
+    <img src="./LogoRosado.jpg" style="max-width:120px;">
   </div>
+
+  <div style="text-align:center;font-size:13px;margin-bottom:10px;">
+    <div>Alajuela, Costa Rica</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
+      <img src="./LogoWhatsApp.png" style="height:16px;">
+      <span>6402-3753</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 style="text-align:center;margin:8px 0;">Resumen de cotización</h3>
+  <p id="r-fecha"></p>
+  <p id="r-vence"></p>
 
   <table style="width:100%;font-size:14px">
     <tbody id="resumen-body"></tbody>
   </table>
 
   <hr>
-  <p>Total sin descuento: <strong id="rS"></strong></p>
-  <p>Descuento aplicado: <strong id="rP"></strong></p>
-  <p style="font-size:18px">Total a pagar:<br><strong id="rF"></strong></p>
 
-  <small>
-    Cotización válida por 8 días.<br>
-    Productos sujetos a disponibilidad.
-  </small>
+  <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
+  <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
+  <p style="font-size:18px">
+    <strong>Total a pagar: <span id="r-total-final"></span></strong>
+  </p>
+
+  <p style="font-size:12px">
+    Los productos están sujetos a disponibilidad al momento de la compra.
+  </p>
 </div>
 
 <script>
@@ -158,18 +168,16 @@ let productos=[],marcas=[];
 
 fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
 .then(r=>r.json())
-.then(d=>{
-  productos=d;
-  marcas=[...new Set(d.map(p=>p.marca))];
+.then(data=>{
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca))];
   for(let i=0;i<6;i++) agregarFila();
 });
 
 function agregarFila(){
   const tr=document.createElement("tr");
-
   const marca=document.createElement("select");
   marca.innerHTML="<option></option>"+marcas.map(m=>`<option>${m}</option>`).join("");
-
   const producto=document.createElement("select");
   producto.disabled=true;
 
@@ -191,7 +199,8 @@ function agregarFila(){
 
   marca.onchange=()=>{
     producto.disabled=!marca.value;
-    producto.innerHTML="<option></option>"+productos.filter(x=>x.marca===marca.value)
+    producto.innerHTML="<option></option>"+productos
+      .filter(x=>x.marca===marca.value)
       .map(x=>`<option>${x.nombre}</option>`).join("");
     i.value="";precio.textContent="₡0";recalcular();
   };
@@ -229,25 +238,29 @@ function recalcular(){
   });
 }
 
-function descargarResumen(){
+function generarResumen(){
   resumenBody.innerHTML="";
-  document.querySelectorAll("#body tr").forEach(r=>{
-    const p=r.children[1].querySelector("select").value;
-    const q=r.querySelector("input").value;
-    if(p&&q>0){
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    const p=tr.children[1].querySelector("select").value;
+    const q=tr.querySelector("input").value;
+    if(p && q>0){
       resumenBody.innerHTML+=`<tr><td>${p}</td><td align="center">${q}</td></tr>`;
     }
   });
 
-  rS.textContent=tS.textContent;
-  rP.textContent=tP.textContent;
-  rF.textContent=tF.textContent;
+  const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
+  rFecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
+  rVence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
 
-  html2canvas(resumen,{scale:2}).then(canvas=>{
-    const link=document.createElement("a");
-    link.download="Cotizacion_MarysBeauty.png";
-    link.href=canvas.toDataURL("image/png");
-    link.click();
+  rTotalSin.textContent=tS.textContent;
+  rDescuento.textContent=tP.textContent;
+  rTotalFinal.textContent=tF.textContent;
+
+  html2canvas(resumen,{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.download="Cotizacion_MarysBeauty.png";
+    a.href=c.toDataURL("image/png");
+    a.click();
   });
 }
 
