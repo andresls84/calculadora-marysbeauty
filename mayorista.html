@@ -85,16 +85,6 @@ button{
   text-align:center;
 }
 .box strong{display:block;font-size:1.3rem;margin-top:6px}
-
-/* ACCIONES */
-.actions{
-  margin-top:18px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-.img-btn{background:#2563eb;color:#fff}
-.wa-btn{background:#25D366;color:#fff}
 </style>
 </head>
 
@@ -103,7 +93,7 @@ button{
 <div class="card">
 
 <div class="header">
-  <img src="./LogoBlanco.jpg" alt="Mary’s Beauty">
+  <img src="./LogoBlanco.jpg">
   <h2>Calculadora de Ventas al Por Mayor</h2>
 </div>
 
@@ -113,6 +103,7 @@ button{
   <th>Marca</th>
   <th>Producto</th>
   <th>Cantidad</th>
+  <th>Precio Mayorista</th>
   <th>Acción</th>
 </tr>
 </thead>
@@ -132,53 +123,11 @@ button{
   </div>
 </div>
 
-<div class="actions">
-  <button class="img-btn" onclick="generarImagen()">📸 Descargar imagen</button>
-  <button class="wa-btn" onclick="abrirWhatsApp()">💬 Abrir WhatsApp</button>
 </div>
-
-</div>
-</div>
-
-<!-- RESUMEN OCULTO -->
-<div id="resumen" style="
-  position:absolute;
-  left:-9999px;
-  width:420px;
-  background:#ffffff;
-  padding:20px;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
-  color:#000;
-">
-  <div style="text-align:center;margin-bottom:10px">
-    <img src="./LogoBlanco.jpg" style="max-width:140px">
-    <div style="font-size:13px">Alajuela, Costa Rica</div>
-    <div style="font-size:13px">WhatsApp: 6402-3753</div>
-  </div>
-
-  <hr>
-
-  <h3 style="text-align:center">Resumen Mayorista</h3>
-
-  <table style="width:100%;font-size:14px;border-collapse:collapse">
-    <tbody id="resumen-body"></tbody>
-  </table>
-
-  <hr>
-
-  <p>Total de productos: <strong id="r-unidades"></strong></p>
-  <p style="font-size:18px">
-    Total a pagar:<br>
-    <strong id="r-total"></strong>
-  </p>
-
-  <p style="font-size:12px">
-    Precios sujetos a disponibilidad.
-  </p>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
 
 let productos=[],marcas=[];
 
@@ -214,11 +163,15 @@ function agregarFila(){
 
   qtyBox.append(menos,cantidad,mas);
 
+  const precio=document.createElement("td");
+  precio.className="money";
+  precio.textContent="₡0";
+
   const borrar=document.createElement("button");
   borrar.textContent="🗑";borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
-  tr.append(td(marca),td(producto),td(qtyBox),td(borrar));
+  tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
 
   marca.onchange=()=>{
     producto.innerHTML="<option></option>";
@@ -226,6 +179,7 @@ function agregarFila(){
     productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
     cantidad.value="";
+    precio.textContent="₡0";
     recalcular();
   };
 
@@ -243,50 +197,31 @@ function td(el){
 }
 
 function recalcular(){
-  const items=[];
+  let totalUnidades=0;
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    totalUnidades+=Number(tr.querySelector("input").value||0);
+  });
+
+  let total=0;
+
   document.querySelectorAll("#body tr").forEach(tr=>{
     const prod=tr.children[1].querySelector("select").value;
-    const qty=Number(tr.querySelector("input").value);
-    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
+    const qty=Number(tr.querySelector("input").value||0);
+    if(!prod||qty<=0) return;
+
+    const fila=productos.find(p=>p.producto===prod);
+    if(!fila) return;
+
+    let precioUnitario=fila.precio_6_11;
+    if(totalUnidades>=12) precioUnitario=fila.precio_12;
+    if(qty>=24) precioUnitario=fila.precio_24;
+
+    tr.children[3].textContent="₡"+precioUnitario.toLocaleString("es-CR");
+    total+=precioUnitario*qty;
   });
 
-  fetch(API,{
-    method:"POST",
-    body:JSON.stringify({action:"calcularMayorista",items})
-  })
-  .then(r=>r.json())
-  .then(res=>{
-    document.getElementById("tU").textContent=res.totalUnidades;
-    document.getElementById("tT").textContent="₡"+res.total.toLocaleString("es-CR");
-  });
-}
-
-function generarImagen(){
-  const rb=document.getElementById("resumen-body");
-  rb.innerHTML="";
-
-  document.querySelectorAll("#body tr").forEach(tr=>{
-    const p=tr.children[1].querySelector("select").value;
-    const q=tr.querySelector("input").value;
-    if(p && q>0){
-      rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
-    }
-  });
-
-  document.getElementById("r-unidades").textContent=document.getElementById("tU").textContent;
-  document.getElementById("r-total").textContent=document.getElementById("tT").textContent;
-
-  html2canvas(document.getElementById("resumen"),{scale:2})
-  .then(c=>{
-    const a=document.createElement("a");
-    a.download="cotizacion_mayorista.png";
-    a.href=c.toDataURL("image/png");
-    a.click();
-  });
-}
-
-function abrirWhatsApp(){
-  window.open("https://wa.me/","_blank");
+  document.getElementById("tU").textContent=totalUnidades;
+  document.getElementById("tT").textContent="₡"+total.toLocaleString("es-CR");
 }
 </script>
 
