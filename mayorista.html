@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Mayorista</title>
 
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
 <style>
 body{
   margin:0;
@@ -29,14 +27,13 @@ body{
   gap:20px;
   background:#111827;
   color:#fff;
-  padding:20px;
+  padding:22px;
   border-radius:16px;
   margin-bottom:18px;
   flex-wrap:wrap;
-  text-align:center;
 }
 .header img{height:90px}
-.header h2{margin:0;font-size:1.6rem}
+.header h2{margin:0;font-size:1.6rem;text-align:center}
 
 /* TABLA */
 table{width:100%;border-collapse:collapse}
@@ -158,7 +155,9 @@ function agregarFila(){
 
   const menos=document.createElement("button");menos.textContent="−";
   const cantidad=document.createElement("input");
-  cantidad.type="number";cantidad.min=1;
+  cantidad.type="number";
+  cantidad.min=1;
+
   const mas=document.createElement("button");mas.textContent="＋";
 
   qtyBox.append(menos,cantidad,mas);
@@ -168,7 +167,8 @@ function agregarFila(){
   precio.textContent="₡0";
 
   const borrar=document.createElement("button");
-  borrar.textContent="🗑";borrar.className="del";
+  borrar.textContent="🗑";
+  borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
@@ -176,15 +176,27 @@ function agregarFila(){
   marca.onchange=()=>{
     producto.innerHTML="<option></option>";
     producto.disabled=!marca.value;
-    productos.filter(p=>p.marca===marca.value)
+    productos
+      .filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
     cantidad.value="";
     precio.textContent="₡0";
     recalcular();
   };
 
-  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
-  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
+  producto.onchange=()=>{
+    cantidad.value=1;          // ✅ CLAVE
+    recalcular();              // ✅ CLAVE
+  };
+
+  menos.onclick=()=>{
+    cantidad.value=Math.max(1,(+cantidad.value||1)-1);
+    recalcular();
+  };
+  mas.onclick=()=>{
+    cantidad.value=(+cantidad.value||0)+1;
+    recalcular();
+  };
   cantidad.oninput=recalcular;
 
   document.getElementById("body").appendChild(tr);
