@@ -30,14 +30,13 @@ body{
   background:#fff;
   border-radius:18px;
   box-shadow:0 12px 30px rgba(0,0,0,.08);
-  padding:16px;
+  padding:20px;
 }
 
-/* === BLOQUE UNIFICADO HEADER + TABLA === */
-.table-card{
-  background:#fff;
-  border-radius:16px;
-  overflow:hidden;
+/* CONTENEDOR COMÚN HEADER + TABLA */
+.table-container{
+  width:100%;
+  overflow-x:auto;
 }
 
 /* HEADER */
@@ -50,17 +49,17 @@ body{
   background:#e6007e;
   color:#fff;
   padding:20px;
+  border-radius:16px;
+  margin-bottom:12px;
   text-align:center;
 }
-
 .header img{height:100px}
 .header h2{margin:0;font-size:1.4rem}
 
-/* CONTENEDOR TABLA */
+/* TABLE */
 .table-wrap{
   width:100%;
   overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
 }
 
 table{
@@ -109,9 +108,11 @@ button{
   background:#e5e7eb;
   border-radius:8px;
 }
-.qty input{width:60px;text-align:center}
+.qty input{
+  width:60px;
+  text-align:center;
+}
 
-/* TOTALES */
 .totals{
   margin-top:18px;
   display:grid;
@@ -130,7 +131,6 @@ button{
   margin-top:6px;
 }
 
-/* ACTIONS */
 .actions{
   display:flex;
   gap:12px;
@@ -147,7 +147,8 @@ button{
 <div class="app">
 <div class="card">
 
-<div class="table-card">
+<div class="table-container">
+
   <div class="header">
     <img src="./LogoRosado.png" alt="Mary’s Beauty">
     <h2>Calculadora de Ventas al Detalle</h2>
@@ -167,6 +168,7 @@ button{
       <tbody id="body"></tbody>
     </table>
   </div>
+
 </div>
 
 <button class="add" onclick="agregarFila()">+ Agregar fila</button>
@@ -187,8 +189,152 @@ button{
 </div>
 </div>
 
-<!-- EL JS QUEDA EXACTAMENTE IGUAL -->
-<!-- (No se tocó absolutamente nada funcional) -->
+<!-- RESUMEN OCULTO -->
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px;font-family:inherit">
+  <div style="text-align:center;margin-bottom:8px">
+    <img src="./LogoRosado.png" style="max-width:140px">
+  </div>
 
+  <div style="text-align:center;font-size:13px;margin-bottom:10px">
+    <div>Alajuela, Costa Rica</div>
+    <div style="display:flex;justify-content:center;gap:6px;margin-top:4px">
+      <img src="./LogoWhatsApp.png" style="height:18px">
+      <span>6402-3753</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 style="text-align:center">Resumen de cotización</h3>
+  <p id="r-fecha"></p>
+  <p id="r-vence"></p>
+
+  <table style="width:100%;font-size:14px">
+    <tbody id="resumen-body"></tbody>
+  </table>
+
+  <hr>
+
+  <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
+  <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
+  <p style="font-size:18px"><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
+
+  <p style="font-size:12px">Los productos están sujetos a disponibilidad.</p>
+</div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+let productos=[],marcas=[];
+
+fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
+.then(r=>r.json())
+.then(data=>{
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca))];
+  for(let i=0;i<4;i++) agregarFila();
+});
+
+function agregarFila(){
+  const tr=document.createElement("tr");
+
+  const marca=document.createElement("select");
+  marca.innerHTML="<option></option>";
+  marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
+
+  const producto=document.createElement("select");
+  producto.innerHTML="<option></option>";
+  producto.disabled=true;
+
+  const qtyBox=document.createElement("div");
+  qtyBox.className="qty";
+  const menos=document.createElement("button");menos.textContent="−";
+  const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
+  const mas=document.createElement("button");mas.textContent="＋";
+  qtyBox.append(menos,cantidad,mas);
+
+  const precio=document.createElement("td");precio.className="money";precio.textContent="₡0";
+  const borrar=document.createElement("button");borrar.textContent="🗑";borrar.className="del";
+  borrar.onclick=()=>{tr.remove();recalcular();};
+
+  tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
+
+  marca.onchange=()=>{
+    producto.innerHTML="<option></option>";
+    producto.disabled=!marca.value;
+    productos.filter(p=>p.marca===marca.value)
+      .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
+    cantidad.value="";
+    precio.textContent="₡0";
+    recalcular();
+  };
+
+  producto.onchange=()=>{
+    const p=productos.find(x=>x.nombre===producto.value);
+    if(p){
+      cantidad.value=1;
+      precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");
+    }
+    recalcular();
+  };
+
+  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
+  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
+  cantidad.oninput=recalcular;
+
+  document.getElementById("body").appendChild(tr);
+}
+
+function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
+
+function recalcular(){
+  const items=[];
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    const prod=tr.children[1].querySelector("select").value;
+    const qty=Number(tr.querySelector("input").value);
+    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
+  });
+
+  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
+  .then(r=>r.json())
+  .then(res=>{
+    tU.textContent=res.totalUnidades;
+    tS.textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
+    tF.textContent="₡"+res.granTotal.toLocaleString("es-CR");
+    tP.textContent=res.descuentoPct.toFixed(1)+"%";
+  });
+}
+
+function descargarResumen(){
+  resumenBody.innerHTML="";
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    const p=tr.children[1].querySelector("select").value;
+    const q=tr.querySelector("input").value;
+    if(p&&q>0) resumenBody.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+  });
+
+  const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
+  rFecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
+  rVence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
+
+  rTotalSin.textContent=tS.textContent;
+  rDescuento.textContent=tP.textContent;
+  rTotalFinal.textContent=tF.textContent;
+
+  html2canvas(resumen,{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.href=c.toDataURL("image/png");
+    a.download="cotizacion_marys_beauty.png";
+    a.click();
+  });
+}
+
+function abrirWhatsApp(){window.open("https://wa.me/","_blank");}
+
+function refrescarApp(){
+  if(confirm("Esto limpiará la cotización actual. ¿Deseas continuar?")){
+    window.location.reload(true);
+  }
+}
+</script>
 </body>
 </html>
