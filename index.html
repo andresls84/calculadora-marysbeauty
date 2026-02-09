@@ -49,7 +49,6 @@ button{
   padding:10px 14px;
   border-radius:12px;
   cursor:pointer;
-  font-weight:600;
 }
 .add{background:#e6007e;color:#fff;margin-top:12px}
 .del{background:#fee2e2;color:#b91c1c}
@@ -74,13 +73,7 @@ button{
   text-align:center;
 }
 .box strong{display:block;font-size:1.2rem;margin-top:6px}
-
-.actions{
-  margin-top:18px;
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
+.actions{margin-top:16px;display:flex;gap:12px}
 .download{background:#2563eb;color:#fff}
 .whatsapp{background:#25D366;color:#fff}
 </style>
@@ -91,7 +84,7 @@ button{
 <div class="card">
 
 <div class="header">
-  <img src="./LogoRosado.jpg" alt="Mary’s Beauty">
+  <img src="./LogoRosado.jpg">
   <h2>Calculadora de Ventas al Detalle</h2>
 </div>
 
@@ -125,41 +118,30 @@ button{
 </div>
 </div>
 
-<!-- RESUMEN OCULTO -->
+<!-- RESUMEN -->
 <div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
-  <div style="text-align:center;margin-bottom:8px;">
-    <img src="./LogoRosado.jpg" style="max-width:120px;">
+  <div style="text-align:center">
+    <img src="./LogoRosado.jpg" style="max-width:120px">
+    <p><strong>Alajuela, Costa Rica</strong></p>
+    <p>
+      <img src="./LogoWhatsApp.png" style="height:16px;vertical-align:middle">
+      6402-3753
+    </p>
+    <hr>
   </div>
 
-  <div style="text-align:center;font-size:13px;margin-bottom:10px;">
-    <div>Alajuela, Costa Rica</div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
-      <img src="./LogoWhatsApp.png" style="height:16px;">
-      <span>6402-3753</span>
-    </div>
-  </div>
-
-  <hr>
-
-  <h3 style="text-align:center;margin:8px 0;">Resumen de cotización</h3>
+  <h3 style="text-align:center">Resumen de cotización</h3>
   <p id="r-fecha"></p>
   <p id="r-vence"></p>
 
-  <table style="width:100%;font-size:14px">
+  <table style="width:100%">
     <tbody id="resumen-body"></tbody>
   </table>
 
   <hr>
-
   <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
   <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
-  <p style="font-size:18px">
-    <strong>Total a pagar: <span id="r-total-final"></span></strong>
-  </p>
-
-  <p style="font-size:12px">
-    Los productos están sujetos a disponibilidad al momento de la compra.
-  </p>
+  <p><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
 </div>
 
 <script>
@@ -168,9 +150,9 @@ let productos=[],marcas=[];
 
 fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
 .then(r=>r.json())
-.then(data=>{
-  productos=data;
-  marcas=[...new Set(productos.map(p=>p.marca))];
+.then(d=>{
+  productos=d;
+  marcas=[...new Set(d.map(p=>p.marca))];
   for(let i=0;i<6;i++) agregarFila();
 });
 
@@ -199,9 +181,7 @@ function agregarFila(){
 
   marca.onchange=()=>{
     producto.disabled=!marca.value;
-    producto.innerHTML="<option></option>"+productos
-      .filter(x=>x.marca===marca.value)
-      .map(x=>`<option>${x.nombre}</option>`).join("");
+    producto.innerHTML="<option></option>"+productos.filter(x=>x.marca===marca.value).map(x=>`<option>${x.nombre}</option>`).join("");
     i.value="";precio.textContent="₡0";recalcular();
   };
 
@@ -220,43 +200,29 @@ function agregarFila(){
 
 function td(e){const t=document.createElement("td");t.appendChild(e);return t}
 
-function recalcular(){
-  const items=[];
-  document.querySelectorAll("#body tr").forEach(r=>{
-    const prod=r.children[1].querySelector("select").value;
-    const qty=r.querySelector("input").value;
-    if(prod&&qty>0) items.push({producto:prod,cantidad:qty});
-  });
-
-  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
-  .then(r=>r.json())
-  .then(d=>{
-    tU.textContent=d.totalUnidades;
-    tS.textContent="₡"+d.totalSinDescuento.toLocaleString("es-CR");
-    tF.textContent="₡"+d.granTotal.toLocaleString("es-CR");
-    tP.textContent=d.descuentoPct.toFixed(1)+"%";
-  });
-}
-
 function generarResumen(){
-  resumenBody.innerHTML="";
+  const rb=document.getElementById("resumen-body");
+  rb.innerHTML="";
+
   document.querySelectorAll("#body tr").forEach(tr=>{
     const p=tr.children[1].querySelector("select").value;
     const q=tr.querySelector("input").value;
     if(p && q>0){
-      resumenBody.innerHTML+=`<tr><td>${p}</td><td align="center">${q}</td></tr>`;
+      rb.innerHTML+=`<tr><td>${p}</td><td align="center">${q}</td></tr>`;
     }
   });
 
-  const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
-  rFecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
-  rVence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
+  const hoy=new Date(), vence=new Date();
+  vence.setDate(hoy.getDate()+8);
 
-  rTotalSin.textContent=tS.textContent;
-  rDescuento.textContent=tP.textContent;
-  rTotalFinal.textContent=tF.textContent;
+  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
+  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
 
-  html2canvas(resumen,{scale:2}).then(c=>{
+  document.getElementById("r-total-sin").textContent=tS.textContent;
+  document.getElementById("r-descuento").textContent=tP.textContent;
+  document.getElementById("r-total-final").textContent=tF.textContent;
+
+  html2canvas(document.getElementById("resumen"),{scale:2}).then(c=>{
     const a=document.createElement("a");
     a.download="Cotizacion_MarysBeauty.png";
     a.href=c.toDataURL("image/png");
