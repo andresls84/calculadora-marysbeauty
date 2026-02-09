@@ -3,41 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora Por Mayor</title>
+<title>Calculadora Mayorista</title>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;background:#f2f4f7}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+  background:#f2f4f7;
+}
 .app{max-width:1200px;margin:20px auto;padding:16px}
-.card{background:#fff;border-radius:18px;box-shadow:0 12px 30px rgba(0,0,0,.08);padding:20px}
+.card{
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  padding:20px;
+}
 
+/* HEADER */
 .header{
-  display:flex;gap:20px;align-items:center;justify-content:center;
-  background:#0f172a;color:#fff;padding:20px;border-radius:16px;
-  flex-wrap:wrap;text-align:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  background:#0f172a;
+  color:#fff;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+  text-align:center;
 }
 .header img{height:120px}
+.header h2{margin:0}
 
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
 th{background:#f9fafb}
-select,input{width:100%;padding:8px;border-radius:10px;border:1px solid #d1d5db}
+
+select,input{
+  width:100%;
+  padding:8px;
+  border:1px solid #d1d5db;
+  border-radius:10px;
+  font-size:15px;
+}
+
 .money{text-align:right;font-weight:600}
 
-.qty{display:flex;gap:6px;align-items:center}
-.qty button{width:32px;height:32px;border-radius:8px}
+button{
+  border:none;
+  padding:10px 14px;
+  border-radius:12px;
+  cursor:pointer;
+}
 
-.add{background:#0f172a;color:#fff;border:none;padding:10px 14px;border-radius:12px}
-.del{background:#fee2e2;color:#b91c1c;border:none;border-radius:10px}
+.add{background:#0f172a;color:#fff;margin-top:12px}
+.del{background:#fee2e2;color:#b91c1c}
 
-.totals{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.box{background:#f9fafb;border-radius:14px;padding:14px;text-align:center}
-.box strong{display:block;font-size:1.3rem}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{
+  width:32px;height:32px;
+  font-size:18px;
+  background:#e5e7eb;
+  border-radius:8px;
+}
+.qty input{width:60px;text-align:center}
 
-.actions{display:flex;gap:12px;margin-top:16px}
-.download{background:#2563eb;color:#fff;border:none;padding:10px 14px;border-radius:12px}
-.whatsapp{background:#25D366;color:#fff;border:none;padding:10px 14px;border-radius:12px}
+.totals{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+.box{
+  background:#f9fafb;
+  border-radius:14px;
+  padding:14px;
+  text-align:center;
+}
+.box strong{display:block;font-size:1.2rem;margin-top:6px}
+
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:16px;
+  flex-wrap:wrap;
+}
+.download{background:#2563eb;color:#fff}
+.whatsapp{background:#25D366;color:#fff}
 </style>
 </head>
 
@@ -72,22 +127,23 @@ select,input{width:100%;padding:8px;border-radius:10px;border:1px solid #d1d5db}
 </div>
 
 <div class="actions">
-  <button class="download" onclick="descargar()">📥 Descargar cotización</button>
-  <button class="whatsapp" onclick="window.open('https://wa.me/','_blank')">📱 Abrir WhatsApp</button>
+  <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
+  <button class="whatsapp" onclick="abrirWhatsApp()">📱 Abrir WhatsApp</button>
 </div>
 
 </div>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
-let productos=[],marcas=[];
+const API = "https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+let productos = [];
+let marcas = [];
 
-fetch(API,{method:"POST",body:JSON.stringify({action:"productosMayorista"})})
+fetch(API,{method:"POST",body:JSON.stringify({action:"mayorista"})})
 .then(r=>r.json())
 .then(data=>{
-  productos=data;
-  marcas=[...new Set(productos.map(p=>p.marca))];
+  productos = data;
+  marcas = [...new Set(productos.map(p=>p.marca))];
   for(let i=0;i<4;i++) agregarFila();
 });
 
@@ -102,73 +158,89 @@ function agregarFila(){
   producto.innerHTML="<option></option>";
   producto.disabled=true;
 
-  const qty=document.createElement("input");
-  qty.type="number";qty.min=1;
+  const qtyBox=document.createElement("div");
+  qtyBox.className="qty";
 
-  const pMay=document.createElement("td");pMay.className="money";pMay.textContent="₡0";
-  const pDet=document.createElement("td");pDet.className="money";pDet.textContent="₡0";
+  const menos=document.createElement("button");menos.textContent="−";
+  const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
+  const mas=document.createElement("button");mas.textContent="＋";
+  qtyBox.append(menos,cantidad,mas);
 
-  const del=document.createElement("button");
-  del.textContent="🗑";del.className="del";
-  del.onclick=()=>{tr.remove();recalcular();};
+  const precioM=document.createElement("td");precioM.className="money";precioM.textContent="—";
+  const precioD=document.createElement("td");precioD.className="money";precioD.textContent="—";
 
-  tr.append(td(marca),td(producto),td(qty),pMay,pDet,td(del));
+  const borrar=document.createElement("button");
+  borrar.textContent="🗑";borrar.className="del";
+  borrar.onclick=()=>{tr.remove();recalcular();};
+
+  tr.append(td(marca),td(producto),td(qtyBox),precioM,precioD,td(borrar));
 
   marca.onchange=()=>{
     producto.innerHTML="<option></option>";
     producto.disabled=!marca.value;
     productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
+    cantidad.value="";
+    precioM.textContent="—";
+    precioD.textContent="—";
+    recalcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.producto===producto.value);
     if(p){
-      qty.value=1;
-      pDet.textContent="₡"+p.precioDetalle.toLocaleString("es-CR");
+      cantidad.value=1;
+      precioD.textContent="₡"+p.precio_lista.toLocaleString("es-CR");
     }
     recalcular();
   };
 
-  qty.oninput=recalcular;
+  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
+  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
+  cantidad.oninput=recalcular;
+
   document.getElementById("body").appendChild(tr);
 }
 
-function td(el){const t=document.createElement("td");t.appendChild(el);return t;}
+function td(el){const td=document.createElement("td");td.appendChild(el);return td;}
 
 function recalcular(){
-  const items=[];
+  let totalUnidades=0,total=0;
+
   document.querySelectorAll("#body tr").forEach(tr=>{
     const prod=tr.children[1].querySelector("select").value;
-    const qty=Number(tr.children[2].querySelector("input").value);
-    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
+    const qty=Number(tr.querySelector("input").value);
+    if(!prod||qty<=0) return;
+
+    const p=productos.find(x=>x.producto===prod);
+    if(!p) return;
+
+    totalUnidades+=qty;
+
+    let precio=null;
+    if(qty>=24) precio=p.precio_24;
+    else if(totalUnidades>=12) precio=p.precio_12;
+    else if(totalUnidades>=6) precio=p.precio_6_11;
+
+    tr.children[3].textContent = precio ? "₡"+precio.toLocaleString("es-CR") : "—";
+    total += precio ? precio*qty : 0;
   });
 
-  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularMayorista",items})})
-  .then(r=>r.json())
-  .then(res=>{
-    document.getElementById("tU").textContent=res.totalUnidades;
-    document.getElementById("tF").textContent="₡"+res.total.toLocaleString("es-CR");
-
-    document.querySelectorAll("#body tr").forEach(tr=>{
-      const prod=tr.children[1].querySelector("select").value;
-      const p=productos.find(x=>x.producto===prod);
-      let precio=0;
-      if(res.totalUnidades>=24) precio=p.precio_24;
-      else if(res.totalUnidades>=12) precio=p.precio_12;
-      else if(res.totalUnidades>=6) precio=p.precio_6_11;
-      tr.children[3].textContent=precio?("₡"+precio.toLocaleString("es-CR")):"";
-    });
-  });
+  document.getElementById("tU").textContent=totalUnidades;
+  document.getElementById("tF").textContent="₡"+total.toLocaleString("es-CR");
 }
 
-function descargar(){
+function descargarResumen(){
   html2canvas(document.body,{scale:2}).then(c=>{
     const a=document.createElement("a");
     a.download="cotizacion_mayorista.png";
     a.href=c.toDataURL("image/png");
     a.click();
   });
+}
+
+function abrirWhatsApp(){
+  window.open("https://wa.me/","_blank");
 }
 </script>
 </body>
