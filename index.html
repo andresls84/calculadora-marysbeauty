@@ -31,10 +31,8 @@ body{
   margin-bottom:18px;
 }
 .header img{height:46px}
-.header h2{
-  color:#fff;
-  margin:0;
-}
+.header h2{color:#fff;margin:0}
+
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
 th{background:#f9fafb}
@@ -83,14 +81,8 @@ button{
   gap:12px;
   flex-wrap:wrap;
 }
-.whatsapp{
-  background:#22c55e;
-  color:#fff;
-}
-.download{
-  background:#2563eb;
-  color:#fff;
-}
+.download{background:#2563eb;color:#fff}
+.whatsapp{background:#22c55e;color:#fff}
 </style>
 </head>
 
@@ -134,7 +126,7 @@ button{
 </div>
 
 <!-- RESUMEN OCULTO -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;padding:20px;font-family:Arial;">
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;padding:20px;background:#fff;font-family:Arial">
   <div style="text-align:center">
     <img src="https://raw.githubusercontent.com/andresls84/calculadora-marysbeauty/main/LogoRosado.jpg" style="height:90px">
     <p><strong>Alajuela, Costa Rica</strong></p>
@@ -146,12 +138,6 @@ button{
   </div>
 
   <table style="width:100%;font-size:14px">
-    <thead>
-      <tr>
-        <th align="left">Producto</th>
-        <th align="center">Cant.</th>
-      </tr>
-    </thead>
     <tbody id="resumen-body"></tbody>
   </table>
 
@@ -162,7 +148,7 @@ button{
 
   <small>
     Cotización válida por 8 días.<br>
-    Productos sujetos a disponibilidad al momento de la compra.
+    Productos sujetos a disponibilidad.
   </small>
 </div>
 
@@ -248,17 +234,20 @@ function descargarResumen(){
   document.querySelectorAll("#body tr").forEach(r=>{
     const p=r.children[1].querySelector("select").value;
     const q=r.querySelector("input").value;
-    if(p&&q>0) resumenBody.innerHTML+=`<tr><td>${p}</td><td align="center">${q}</td></tr>`;
+    if(p&&q>0){
+      resumenBody.innerHTML+=`<tr><td>${p}</td><td align="center">${q}</td></tr>`;
+    }
   });
+
   rS.textContent=tS.textContent;
   rP.textContent=tP.textContent;
   rF.textContent=tF.textContent;
 
-  html2canvas(resumen,{scale:2}).then(c=>{
-    const a=document.createElement("a");
-    a.download="Cotizacion_MarysBeauty.png";
-    a.href=c.toDataURL("image/png");
-    a.click();
+  html2canvas(resumen,{scale:2}).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="Cotizacion_MarysBeauty.png";
+    link.href=canvas.toDataURL("image/png");
+    link.click();
   });
 }
 
