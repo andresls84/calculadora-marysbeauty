@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Detalle</title>
 
-<!-- ICONO PARA APP WEB (iOS / Android) -->
+<!-- ICONOS APP WEB -->
 <link rel="apple-touch-icon" href="./LogoRosado.png">
 <link rel="icon" type="image/png" href="./LogoRosado.png">
 
@@ -33,12 +33,6 @@ body{
   padding:20px;
 }
 
-/* CONTENEDOR COMÚN HEADER + TABLA */
-.table-container{
-  width:100%;
-  overflow-x:auto;
-}
-
 /* HEADER */
 .header{
   display:flex;
@@ -50,9 +44,10 @@ body{
   color:#fff;
   padding:20px;
   border-radius:16px;
-  margin-bottom:12px;
+  margin-bottom:18px;
   text-align:center;
 }
+
 .header img{height:100px}
 .header h2{margin:0;font-size:1.4rem}
 
@@ -86,6 +81,26 @@ select,input{
 
 .money{text-align:right;font-weight:600}
 
+.qty{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.qty button{
+  width:32px;
+  height:32px;
+  font-size:18px;
+  background:#e5e7eb;
+  border:none;
+  border-radius:8px;
+}
+
+.qty input{
+  width:60px;
+  text-align:center;
+}
+
 button{
   border:none;
   padding:10px 14px;
@@ -96,35 +111,20 @@ button{
 .add{background:#e6007e;color:#fff;margin-top:12px}
 .del{background:#fee2e2;color:#b91c1c}
 
-.qty{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-.qty button{
-  width:32px;
-  height:32px;
-  font-size:18px;
-  background:#e5e7eb;
-  border-radius:8px;
-}
-.qty input{
-  width:60px;
-  text-align:center;
-}
-
 .totals{
   margin-top:18px;
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:14px;
 }
+
 .box{
   background:#f9fafb;
   border-radius:14px;
   padding:14px;
   text-align:center;
 }
+
 .box strong{
   display:block;
   font-size:1.2rem;
@@ -137,6 +137,7 @@ button{
   margin-top:16px;
   flex-wrap:wrap;
 }
+
 .download{background:#2563eb;color:#fff}
 .whatsapp{background:#25D366;color:#fff}
 .refresh{background:#6b7280;color:#fff}
@@ -147,28 +148,24 @@ button{
 <div class="app">
 <div class="card">
 
-<div class="table-container">
+<div class="header">
+  <img src="./LogoRosado.png" alt="Mary’s Beauty">
+  <h2>Calculadora de Ventas al Detalle</h2>
+</div>
 
-  <div class="header">
-    <img src="./LogoRosado.png" alt="Mary’s Beauty">
-    <h2>Calculadora de Ventas al Detalle</h2>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Marca</th>
-          <th>Producto</th>
-          <th>Cantidad</th>
-          <th>Precio Unitario</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody id="body"></tbody>
-    </table>
-  </div>
-
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th>Marca</th>
+  <th>Producto</th>
+  <th>Cantidad</th>
+  <th>Precio Unitario</th>
+  <th>Acción</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
+</table>
 </div>
 
 <button class="add" onclick="agregarFila()">+ Agregar fila</button>
@@ -190,7 +187,7 @@ button{
 </div>
 
 <!-- RESUMEN OCULTO -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px;font-family:inherit">
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
   <div style="text-align:center;margin-bottom:8px">
     <img src="./LogoRosado.png" style="max-width:140px">
   </div>
@@ -224,6 +221,20 @@ button{
 
 <script>
 const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
+
+const tU=document.getElementById("tU");
+const tS=document.getElementById("tS");
+const tF=document.getElementById("tF");
+const tP=document.getElementById("tP");
+
+const resumen=document.getElementById("resumen");
+const resumenBody=document.getElementById("resumen-body");
+const rFecha=document.getElementById("r-fecha");
+const rVence=document.getElementById("r-vence");
+const rTotalSin=document.getElementById("r-total-sin");
+const rDescuento=document.getElementById("r-descuento");
+const rTotalFinal=document.getElementById("r-total-final");
+
 let productos=[],marcas=[];
 
 fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
@@ -247,13 +258,20 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
+
   const menos=document.createElement("button");menos.textContent="−";
   const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
   const mas=document.createElement("button");mas.textContent="＋";
+
   qtyBox.append(menos,cantidad,mas);
 
-  const precio=document.createElement("td");precio.className="money";precio.textContent="₡0";
-  const borrar=document.createElement("button");borrar.textContent="🗑";borrar.className="del";
+  const precio=document.createElement("td");
+  precio.className="money";
+  precio.textContent="₡0";
+
+  const borrar=document.createElement("button");
+  borrar.textContent="🗑";
+  borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
@@ -291,7 +309,7 @@ function recalcular(){
   document.querySelectorAll("#body tr").forEach(tr=>{
     const prod=tr.children[1].querySelector("select").value;
     const qty=Number(tr.querySelector("input").value);
-    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
+    if(prod&&qty>0) items.push({producto:prod,cantidad:qty});
   });
 
   fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
@@ -309,7 +327,9 @@ function descargarResumen(){
   document.querySelectorAll("#body tr").forEach(tr=>{
     const p=tr.children[1].querySelector("select").value;
     const q=tr.querySelector("input").value;
-    if(p&&q>0) resumenBody.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    if(p&&q>0){
+      resumenBody.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    }
   });
 
   const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
