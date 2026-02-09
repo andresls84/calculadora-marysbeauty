@@ -26,15 +26,36 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:18px;
+  gap:20px;
   background:#e6007e;
   color:#fff;
-  padding:18px;
+  padding:20px;
   border-radius:16px;
   margin-bottom:18px;
+  flex-wrap:wrap;
+  text-align:center;
 }
-/* ⬇️ LOGO DOBLE DE TAMAÑO EN LA CALCULADORA */
-.header img{height:128px}
+.header img{
+  height:120px; /* LOGO GRANDE */
+}
+.header h2{
+  margin:0;
+}
+
+/* Responsive header */
+@media (max-width:600px){
+  .header{
+    flex-direction:column;
+    gap:12px;
+  }
+  .header img{
+    height:100px;
+  }
+  .header h2{
+    font-size:1.3rem;
+    line-height:1.3;
+  }
+}
 
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
@@ -87,6 +108,7 @@ button{
   display:flex;
   gap:12px;
   margin-top:16px;
+  flex-wrap:wrap;
 }
 .download{background:#2563eb;color:#fff}
 .whatsapp{background:#25D366;color:#fff}
@@ -125,8 +147,8 @@ button{
 </div>
 
 <div class="actions">
-  <button class="download" onclick="generarResumen()">📥 Descargar cotización</button>
-  <button class="whatsapp" onclick="abrirWhatsApp()">🟢 Abrir WhatsApp</button>
+  <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
+  <button class="whatsapp" onclick="abrirWhatsApp()">📱 Abrir WhatsApp</button>
 </div>
 
 </div>
@@ -142,15 +164,14 @@ button{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
   color:#000;
 ">
-  <!-- LOGO DEL RESUMEN (SE MANTIENE IGUAL) -->
   <div style="text-align:center;margin-bottom:8px;">
-    <img src="./LogoRosado.jpg" style="max-width:120px;">
+    <img src="./LogoRosado.jpg" style="max-width:140px;">
   </div>
 
   <div style="text-align:center;font-size:13px;margin-bottom:10px;">
     <div>Alajuela, Costa Rica</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
-      <img src="./LogoWhatsApp.png" style="height:16px;">
+      <img src="./LogoWhatsApp.png" style="height:18px;">
       <span>6402-3753</span>
     </div>
   </div>
@@ -162,13 +183,6 @@ button{
   <p id="r-vence"></p>
 
   <table style="width:100%;font-size:14px;border-collapse:collapse">
-    <thead>
-      <tr>
-        <th style="text-align:left;border-bottom:1px solid #ccc;">Producto</th>
-        <th style="text-align:center;border-bottom:1px solid #ccc;">Cant.</th>
-        <th style="text-align:right;border-bottom:1px solid #ccc;">Precio Unit.</th>
-      </tr>
-    </thead>
     <tbody id="resumen-body"></tbody>
   </table>
 
@@ -194,7 +208,7 @@ fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
 .then(data=>{
   productos=data;
   marcas=[...new Set(productos.map(p=>p.marca))];
-  for(let i=0;i<4;i++) agregarFila();
+  for(let i=0;i<4;i++) agregarFila(); // 🔹 SOLO 4 FILAS
 });
 
 function agregarFila(){
@@ -277,21 +291,15 @@ function recalcular(){
   });
 }
 
-function generarResumen(){
+function descargarResumen(){
   const rb=document.getElementById("resumen-body");
   rb.innerHTML="";
 
   document.querySelectorAll("#body tr").forEach(tr=>{
     const p=tr.children[1].querySelector("select").value;
     const q=tr.querySelector("input").value;
-    const precio=tr.children[3].textContent;
     if(p && q>0){
-      rb.innerHTML+=`
-        <tr>
-          <td>${p}</td>
-          <td style="text-align:center">${q}</td>
-          <td style="text-align:right">${precio}</td>
-        </tr>`;
+      rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
     }
   });
 
@@ -303,15 +311,14 @@ function generarResumen(){
   document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
   document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
 
-  html2canvas(document.getElementById("resumen"),{scale:2})
-    .then(canvas=>{
-      const a=document.createElement("a");
-      a.href=canvas.toDataURL("image/png");
-      a.download="cotizacion_marys_beauty.png";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    });
+  html2canvas(document.getElementById("resumen"),{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.download="cotizacion_marys_beauty.png";
+    a.href=c.toDataURL("image/png");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
 }
 
 function abrirWhatsApp(){
