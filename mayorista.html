@@ -1,249 +1,67 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora Mayorista</title>
-
-<style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
-  background:#f2f4f7;
-}
-.app{max-width:1200px;margin:20px auto;padding:16px}
-.card{
-  background:#fff;
-  border-radius:18px;
-  box-shadow:0 12px 30px rgba(0,0,0,.08);
-  padding:20px;
-}
-
-/* HEADER */
-.header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:20px;
-  background:#111827;
-  color:#fff;
-  padding:22px;
-  border-radius:16px;
-  margin-bottom:18px;
-  flex-wrap:wrap;
-}
-.header img{height:90px}
-.header h2{margin:0;font-size:1.6rem;text-align:center}
-
-/* TABLA */
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #e5e7eb}
-th{background:#f9fafb}
-select,input{
-  width:100%;
-  padding:8px;
-  border:1px solid #d1d5db;
-  border-radius:10px;
-  font-size:15px;
-}
-.money{text-align:right;font-weight:600}
-
-/* BOTONES */
-button{
-  border:none;
-  padding:10px 14px;
-  border-radius:12px;
-  cursor:pointer;
-}
-.add{background:#111827;color:#fff;margin-top:12px}
-.del{background:#fee2e2;color:#b91c1c}
-
-/* CANTIDAD */
-.qty{display:flex;align-items:center;gap:6px}
-.qty button{
-  width:32px;height:32px;
-  font-size:18px;
-  background:#e5e7eb;
-  border-radius:8px;
-}
-.qty input{width:70px;text-align:center}
-
-/* TOTALES */
-.totals{
-  margin-top:18px;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
-}
-.box{
-  background:#f9fafb;
-  border-radius:14px;
-  padding:14px;
-  text-align:center;
-}
-.box strong{display:block;font-size:1.3rem;margin-top:6px}
-</style>
-</head>
-
-<body>
-<div class="app">
-<div class="card">
-
-<div class="header">
-  <img src="./LogoBlanco.jpg">
-  <h2>Calculadora de Ventas al Por Mayor</h2>
-</div>
-
-<table>
-<thead>
-<tr>
-  <th>Marca</th>
-  <th>Producto</th>
-  <th>Cantidad</th>
-  <th>Precio Mayorista</th>
-  <th>Precio Detalle</th>
-  <th>Acción</th>
-</tr>
-</thead>
-<tbody id="body"></tbody>
-</table>
-
-<button class="add" onclick="agregarFila()">+ Agregar fila</button>
-
-<div class="totals">
-  <div class="box">
-    Total de productos
-    <strong id="tU">0</strong>
-  </div>
-  <div class="box">
-    Total a pagar
-    <strong id="tT">₡0</strong>
-  </div>
-</div>
-
-</div>
-</div>
-
-<script>
-const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
-
-let productos=[], marcas=[];
-
-fetch(API,{
-  method:"POST",
-  body:JSON.stringify({action:"productosMayorista"})
-})
-.then(r=>r.json())
-.then(data=>{
-  productos=data;
-  marcas=[...new Set(productos.map(p=>p.marca))];
-  for(let i=0;i<4;i++) agregarFila();
-});
-
-function agregarFila(){
-  const tr=document.createElement("tr");
-
-  const marca=document.createElement("select");
-  marca.innerHTML="<option></option>";
-  marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
-
-  const producto=document.createElement("select");
-  producto.innerHTML="<option></option>";
-  producto.disabled=true;
-
-  const qtyBox=document.createElement("div");
-  qtyBox.className="qty";
-  const menos=document.createElement("button");menos.textContent="−";
-  const cantidad=document.createElement("input");
-  cantidad.type="number";cantidad.min=1;
-  const mas=document.createElement("button");mas.textContent="＋";
-  qtyBox.append(menos,cantidad,mas);
-
-  const precioMayorista=document.createElement("td");
-  precioMayorista.className="money";
-  precioMayorista.textContent="₡0";
-
-  const precioDetalle=document.createElement("td");
-  precioDetalle.className="money";
-  precioDetalle.textContent="₡0";
-
-  const borrar=document.createElement("button");
-  borrar.textContent="🗑";
-  borrar.className="del";
-  borrar.onclick=()=>{tr.remove();recalcular();};
-
-  tr.append(
-    td(marca),
-    td(producto),
-    td(qtyBox),
-    precioMayorista,
-    precioDetalle,
-    td(borrar)
-  );
-
-  marca.onchange=()=>{
-    producto.innerHTML="<option></option>";
-    producto.disabled=!marca.value;
-    productos.filter(p=>p.marca===marca.value)
-      .forEach(p=>producto.innerHTML+=`<option>${p.producto}</option>`);
-    cantidad.value="";
-    recalcular();
-  };
-
-  producto.onchange=()=>{
-    cantidad.value=1;
-    recalcular();
-  };
-
-  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
-  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
-  cantidad.oninput=recalcular;
-
-  document.getElementById("body").appendChild(tr);
-}
-
-function td(el){
-  const td=document.createElement("td");
-  td.appendChild(el);
-  return td;
-}
-
 function recalcular(){
-  let totalUnidades=0;
-
-  document.querySelectorAll("#body tr").forEach(tr=>{
-    totalUnidades+=Number(tr.querySelector("input").value||0);
+  // 1. Calcular total de unidades de TODOS los productos
+  let totalUnidades = 0;
+  document.querySelectorAll("#body tr").forEach(tr => {
+    totalUnidades += Number(tr.querySelector("input").value || 0);
   });
 
-  let nivel="6";
-  if(totalUnidades>=24) nivel="24";
-  else if(totalUnidades>=12) nivel="12";
+  // 2. Determinar nivel mayorista GLOBAL basado en TODAS las unidades
+  let nivelGlobal = "individual"; // menos de 6 unidades
+  if (totalUnidades >= 24) nivelGlobal = "24";
+  else if (totalUnidades >= 12) nivelGlobal = "12";
+  else if (totalUnidades >= 6) nivelGlobal = "6_11";
 
-  let total=0;
+  // 3. Calcular total y aplicar precios
+  let total = 0;
 
-  document.querySelectorAll("#body tr").forEach(tr=>{
-    const prod=tr.children[1].querySelector("select").value;
-    const qty=Number(tr.querySelector("input").value||0);
-    if(!prod||qty<=0) return;
+  document.querySelectorAll("#body tr").forEach(tr => {
+    const prodSelect = tr.children[1].querySelector("select");
+    const prod = prodSelect ? prodSelect.value : "";
+    const qty = Number(tr.querySelector("input").value || 0);
+    
+    if (!prod || qty <= 0) {
+      tr.children[3].textContent = "₡0";
+      tr.children[4].textContent = "₡0";
+      return;
+    }
 
-    const fila=productos.find(p=>p.producto===prod);
-    if(!fila) return;
+    // Buscar datos del producto
+    const fila = productos.find(p => p.producto === prod);
+    if (!fila) {
+      tr.children[3].textContent = "₡0";
+      tr.children[4].textContent = "₡0";
+      return;
+    }
 
-    let precioUnit =
-      nivel==="24" ? fila.precio_24 :
-      nivel==="12" ? fila.precio_12 :
-      fila.precio_6_11;
+    // 4. DECISIÓN DE PRECIO (la lógica correcta)
+    let precioUnit;
+    
+    // REGLA 1: Si tiene 24+ unidades del MISMO producto
+    if (qty >= 24) {
+      precioUnit = fila.precio_24;
+    }
+    // REGLA 2: Si no, usar nivel global
+    else if (nivelGlobal === "12") {
+      precioUnit = fila.precio_12;
+    }
+    else if (nivelGlobal === "6_11") {
+      precioUnit = fila.precio_6_11;
+    }
+    else {
+      // Menos de 6 unidades en total - no califica como mayorista
+      // Aquí puedes decidir qué mostrar
+      precioUnit = fila.precio_6_11; // o podrías poner 0 o otro precio
+    }
 
-    tr.children[3].textContent="₡"+precioUnit.toLocaleString("es-CR");
-    tr.children[4].textContent="₡"+fila.precio_6_11.toLocaleString("es-CR");
+    // Mostrar precios
+    tr.children[3].textContent = "₡" + precioUnit.toLocaleString("es-CR");
+    tr.children[4].textContent = "₡" + fila.precio_6_11.toLocaleString("es-CR");
 
-    total+=precioUnit*qty;
+    // Sumar al total
+    total += precioUnit * qty;
   });
 
-  document.getElementById("tU").textContent=totalUnidades;
-  document.getElementById("tT").textContent="₡"+total.toLocaleString("es-CR");
+  // 5. Actualizar totales
+  document.getElementById("tU").textContent = totalUnidades;
+  document.getElementById("tT").textContent = "₡" + total.toLocaleString("es-CR");
 }
-</script>
-
-</body>
-</html>
