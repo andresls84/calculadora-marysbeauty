@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Mayorista</title>
 
-<!-- ICONO PARA APP WEB (iOS / Android) -->
+<!-- ICONO PARA AGREGAR A INICIO (iOS / Android) -->
 <link rel="apple-touch-icon" href="./LogoBlanco.png">
 <link rel="icon" type="image/png" href="./LogoBlanco.png">
 
@@ -278,11 +278,15 @@ function recalcular(){
 }
 
 function descargarResumen(){
-  resumenBody.innerHTML="";
+  const rb=document.getElementById("resumen-body");
+  rb.innerHTML="";
+
   document.querySelectorAll("#body tr").forEach(r=>{
     const p=r.children[1].querySelector("select").value;
     const q=r.querySelector("input").value;
-    if(p&&q>0) resumenBody.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    if(p&&q>0){
+      rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    }
   });
 
   const hoy=new Date(),vence=new Date();
@@ -304,7 +308,7 @@ function abrirWhatsApp(){window.open("https://wa.me/","_blank");}
 
 function refrescarApp(){
   if(confirm("Esto limpiará la cotización actual. ¿Deseas continuar?")){
-    window.location.reload(true);
+    location.reload();
   }
 }
 </script>
