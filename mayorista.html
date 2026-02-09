@@ -5,65 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Mayorista</title>
 
+<!-- ICONO PARA APP WEB (iOS / Android) -->
+<link rel="apple-touch-icon" href="./LogoBlanco.png">
+<link rel="icon" type="image/png" href="./LogoBlanco.png">
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <style>
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
   background:#f2f4f7;
 }
-.app{max-width:1200px;margin:auto;padding:16px}
+.app{max-width:1200px;margin:20px auto;padding:16px}
 .card{
   background:#fff;
   border-radius:18px;
-  padding:20px;
   box-shadow:0 12px 30px rgba(0,0,0,.08);
+  padding:20px;
 }
 
+/* HEADER */
 .header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
   background:#0f172a;
   color:#fff;
-  padding:20px;
+  padding:24px;
   border-radius:16px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
   text-align:center;
 }
-.header img{height:90px}
+.header img{height:100px}
+.header h2{margin:0}
 
-.list{
-  display:grid;
-  gap:12px;
-  margin-top:16px;
-}
-.item{
-  background:#f9fafb;
-  border-radius:12px;
-  padding:12px;
-  display:grid;
-  gap:8px;
-}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #e5e7eb}
+th{background:#f9fafb}
 
 select,input{
+  width:100%;
   padding:8px;
-  border-radius:10px;
   border:1px solid #d1d5db;
-}
-
-.qty{
-  display:flex;
-  gap:6px;
+  border-radius:10px;
+  font-size:15px;
 }
 
 .money{text-align:right;font-weight:600}
+
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{
+  width:32px;height:32px;
+  background:#e5e7eb;
+  border:none;
+  border-radius:8px;
+  font-size:18px;
+  cursor:pointer;
+}
+.qty input{width:60px;text-align:center}
 
 button{
   border:none;
   padding:10px 14px;
   border-radius:12px;
+  cursor:pointer;
 }
 
+.add{background:#0f172a;color:#fff;margin-top:12px}
+.del{background:#fee2e2;color:#b91c1c}
+
+/* TOTALES */
 .totals{
-  margin-top:16px;
+  margin-top:18px;
   display:grid;
-  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
 }
 .box{
   background:#f9fafb;
@@ -71,6 +91,22 @@ button{
   padding:14px;
   text-align:center;
 }
+.box strong{
+  display:block;
+  font-size:1.2rem;
+  margin-top:6px;
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:16px;
+  flex-wrap:wrap;
+}
+.download{background:#2563eb;color:#fff}
+.whatsapp{background:#25D366;color:#fff}
+.refresh{background:#6b7280;color:#fff}
 </style>
 </head>
 
@@ -83,16 +119,79 @@ button{
   <h2>Calculadora de Ventas al Por Mayor</h2>
 </div>
 
-<div id="body" class="list"></div>
+<table>
+<thead>
+<tr>
+  <th>Marca</th>
+  <th>Producto</th>
+  <th>Cantidad</th>
+  <th>Precio Mayorista</th>
+  <th>Precio Detalle</th>
+  <th>Acción</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
+</table>
 
-<button onclick="agregarFila()">+ Agregar fila</button>
+<button class="add" onclick="agregarFila()">+ Agregar fila</button>
 
 <div class="totals">
-  <div class="box">Total productos <strong id="tU">0</strong></div>
-  <div class="box">Total pagar <strong id="tF">₡0</strong></div>
+  <div class="box">Total de productos<strong id="tU">0</strong></div>
+  <div class="box">Total a pagar<strong id="tF">₡0</strong></div>
+</div>
+
+<div class="actions">
+  <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
+  <button class="whatsapp" onclick="abrirWhatsApp()">📱 Abrir WhatsApp</button>
+  <button class="refresh" onclick="refrescarApp()">🔄 Refrescar</button>
 </div>
 
 </div>
+</div>
+
+<!-- ================= RESUMEN OCULTO ================= -->
+<div id="resumen" style="
+  position:absolute;
+  left:-9999px;
+  width:420px;
+  background:#ffffff;
+  padding:20px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
+  color:#000;
+">
+  <div style="text-align:center;margin-bottom:8px;">
+    <img src="./LogoBlanco.png" style="max-width:140px;">
+  </div>
+
+  <div style="text-align:center;font-size:13px;margin-bottom:10px;">
+    <div>Alajuela, Costa Rica</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;">
+      <img src="./LogoWhatsApp.png" style="height:18px;">
+      <span>6402-3753</span>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 style="text-align:center;margin:8px 0;">Resumen de cotización</h3>
+  <p id="r-fecha"></p>
+  <p id="r-vence"></p>
+
+  <table style="width:100%;font-size:14px;border-collapse:collapse">
+    <tbody id="resumen-body"></tbody>
+  </table>
+
+  <hr>
+
+  <p style="font-size:18px;text-align:center">
+    <strong>Total a pagar:<br>
+      <span id="r-total"></span>
+    </strong>
+  </p>
+
+  <p style="font-size:12px;text-align:center;margin-top:10px">
+    Los productos están sujetos a disponibilidad al momento de la compra.
+  </p>
 </div>
 
 <script>
@@ -101,36 +200,112 @@ let productos=[],marcas=[];
 
 fetch(API,{method:"POST",body:JSON.stringify({action:"productosMayorista"})})
 .then(r=>r.json())
-.then(d=>{
-  productos=d;
-  marcas=[...new Set(d.map(p=>p.marca))];
-  for(let i=0;i<3;i++) agregarFila();
+.then(data=>{
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca))];
+  for(let i=0;i<4;i++) agregarFila();
 });
 
 function agregarFila(){
-  const r=document.createElement("div");
-  r.className="item";
+  const tr=document.createElement("tr");
 
-  const m=document.createElement("select");
-  m.innerHTML="<option>Marca</option>";
-  marcas.forEach(x=>m.innerHTML+=`<option>${x}</option>`);
+  const marca=document.createElement("select");
+  marca.innerHTML="<option></option>";
+  marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
 
-  const p=document.createElement("select");
-  p.innerHTML="<option>Producto</option>";
-  p.disabled=true;
+  const producto=document.createElement("select");
+  producto.innerHTML="<option></option>";
+  producto.disabled=true;
 
-  const q=document.createElement("input");q.type="number";q.min=1;
+  const qtyBox=document.createElement("div");
+  qtyBox.className="qty";
+  const menos=document.createElement("button");menos.textContent="−";
+  const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
+  const mas=document.createElement("button");mas.textContent="＋";
+  qtyBox.append(menos,cantidad,mas);
 
-  const pr=document.createElement("div");pr.className="money";pr.textContent="₡0";
+  const pMay=document.createElement("td");pMay.className="money";pMay.textContent="—";
+  const pDet=document.createElement("td");pDet.className="money";pDet.textContent="—";
 
-  r.append(m,p,q,pr);
-  document.getElementById("body").appendChild(r);
+  const del=document.createElement("button");
+  del.textContent="🗑";del.className="del";
+  del.onclick=()=>{tr.remove();recalcular();};
 
-  m.onchange=()=>{
-    p.innerHTML="<option>Producto</option>";
-    p.disabled=false;
-    productos.filter(x=>x.marca===m.value).forEach(x=>p.innerHTML+=`<option>${x.nombre}</option>`);
+  tr.append(td(marca),td(producto),td(qtyBox),pMay,pDet,td(del));
+
+  marca.onchange=()=>{
+    producto.innerHTML="<option></option>";
+    producto.disabled=!marca.value;
+    productos.filter(p=>p.marca===marca.value)
+      .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
   };
+
+  producto.onchange=()=>{cantidad.value=1;recalcular();}
+  menos.onclick=()=>{cantidad.value=Math.max(1,(+cantidad.value||1)-1);recalcular();}
+  mas.onclick=()=>{cantidad.value=(+cantidad.value||0)+1;recalcular();}
+  cantidad.oninput=recalcular;
+
+  document.getElementById("body").appendChild(tr);
+}
+
+function td(el){const t=document.createElement("td");t.appendChild(el);return t;}
+
+function recalcular(){
+  let totalUnidades=0,total=0;
+  const rows=document.querySelectorAll("#body tr");
+
+  rows.forEach(r=>{totalUnidades+=Number(r.querySelector("input").value||0);});
+
+  rows.forEach(r=>{
+    const prod=r.children[1].querySelector("select").value;
+    const qty=Number(r.querySelector("input").value||0);
+    const pMay=r.children[3],pDet=r.children[4];
+    if(!prod||qty<=0){pMay.textContent="—";pDet.textContent="—";return;}
+    const p=productos.find(x=>x.nombre===prod);
+    pDet.textContent="₡"+p.precio_lista.toLocaleString("es-CR");
+
+    let precio=0;
+    if(qty>=24) precio=p.precio_24;
+    else if(totalUnidades>=12) precio=p.precio_12;
+    else if(totalUnidades>=6) precio=p.precio_6_11;
+
+    pMay.textContent=precio?("₡"+precio.toLocaleString("es-CR")):"—";
+    total+=precio*qty;
+  });
+
+  tU.textContent=totalUnidades;
+  tF.textContent="₡"+total.toLocaleString("es-CR");
+}
+
+function descargarResumen(){
+  resumenBody.innerHTML="";
+  document.querySelectorAll("#body tr").forEach(r=>{
+    const p=r.children[1].querySelector("select").value;
+    const q=r.querySelector("input").value;
+    if(p&&q>0) resumenBody.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+  });
+
+  const hoy=new Date(),vence=new Date();
+  vence.setDate(hoy.getDate()+8);
+
+  rFecha.textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
+  rVence.textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
+  rTotal.textContent=tF.textContent;
+
+  html2canvas(resumen,{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.href=c.toDataURL("image/png");
+    a.download="cotizacion_mayorista.png";
+    a.click();
+  });
+}
+
+function abrirWhatsApp(){window.open("https://wa.me/","_blank");}
+
+function refrescarApp(){
+  if(confirm("Esto limpiará la cotización actual. ¿Deseas continuar?")){
+    window.location.reload(true);
+  }
 }
 </script>
 </body>
