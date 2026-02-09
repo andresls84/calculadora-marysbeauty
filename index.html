@@ -73,7 +73,11 @@ button{
   text-align:center;
 }
 .box strong{display:block;font-size:1.2rem;margin-top:6px}
-.actions{margin-top:16px;display:flex;gap:12px}
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:16px;
+}
 .download{background:#2563eb;color:#fff}
 .whatsapp{background:#25D366;color:#fff}
 </style>
@@ -120,28 +124,34 @@ button{
 
 <!-- RESUMEN -->
 <div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
-  <div style="text-align:center">
+  <div style="text-align:center;margin-bottom:10px">
     <img src="./LogoRosado.jpg" style="max-width:120px">
-    <p><strong>Alajuela, Costa Rica</strong></p>
-    <p>
-      <img src="./LogoWhatsApp.png" style="height:16px;vertical-align:middle">
+    <div style="font-size:13px">Alajuela, Costa Rica</div>
+    <div style="display:flex;justify-content:center;gap:6px;margin-top:4px;font-size:13px">
+      <img src="./LogoWhatsApp.png" style="height:16px">
       6402-3753
-    </p>
-    <hr>
+    </div>
   </div>
+
+  <hr>
 
   <h3 style="text-align:center">Resumen de cotización</h3>
   <p id="r-fecha"></p>
   <p id="r-vence"></p>
 
-  <table style="width:100%">
+  <table style="width:100%;font-size:14px">
     <tbody id="resumen-body"></tbody>
   </table>
 
   <hr>
+
   <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
   <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
   <p><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
+
+  <p style="font-size:12px">
+    Los productos están sujetos a disponibilidad al momento de la compra.
+  </p>
 </div>
 
 <script>
@@ -150,25 +160,29 @@ let productos=[],marcas=[];
 
 fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
 .then(r=>r.json())
-.then(d=>{
-  productos=d;
-  marcas=[...new Set(d.map(p=>p.marca))];
+.then(data=>{
+  productos=data;
+  marcas=[...new Set(productos.map(p=>p.marca))];
   for(let i=0;i<6;i++) agregarFila();
 });
 
 function agregarFila(){
   const tr=document.createElement("tr");
+
   const marca=document.createElement("select");
-  marca.innerHTML="<option></option>"+marcas.map(m=>`<option>${m}</option>`).join("");
+  marca.innerHTML="<option></option>";
+  marcas.forEach(m=>marca.innerHTML+=`<option>${m}</option>`);
+
   const producto=document.createElement("select");
+  producto.innerHTML="<option></option>";
   producto.disabled=true;
 
   const qty=document.createElement("div");
   qty.className="qty";
-  const m=document.createElement("button");m.textContent="−";
-  const i=document.createElement("input");i.type="number";i.min=1;
-  const p=document.createElement("button");p.textContent="+";
-  qty.append(m,i,p);
+  const menos=document.createElement("button");menos.textContent="−";
+  const input=document.createElement("input");input.type="number";input.min=1;
+  const mas=document.createElement("button");mas.textContent="+";
+  qty.append(menos,input,mas);
 
   const precio=document.createElement("td");
   precio.className="money";precio.textContent="₡0";
@@ -180,25 +194,45 @@ function agregarFila(){
   tr.append(td(marca),td(producto),td(qty),precio,td(del));
 
   marca.onchange=()=>{
+    producto.innerHTML="<option></option>";
     producto.disabled=!marca.value;
-    producto.innerHTML="<option></option>"+productos.filter(x=>x.marca===marca.value).map(x=>`<option>${x.nombre}</option>`).join("");
-    i.value="";precio.textContent="₡0";recalcular();
+    productos.filter(p=>p.marca===marca.value)
+      .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
+    input.value="";precio.textContent="₡0";recalcular();
   };
 
   producto.onchange=()=>{
     const p=productos.find(x=>x.nombre===producto.value);
-    if(p){i.value=1;precio.textContent="₡"+p.precioLista.toLocaleString("es-CR")}
+    if(p){input.value=1;precio.textContent="₡"+p.precioLista.toLocaleString("es-CR")}
     recalcular();
   };
 
-  m.onclick=()=>{i.value=Math.max(1,(+i.value||1)-1);recalcular()};
-  p.onclick=()=>{i.value=(+i.value||0)+1;recalcular()};
-  i.oninput=recalcular;
+  menos.onclick=()=>{input.value=Math.max(1,(+input.value||1)-1);recalcular()}
+  mas.onclick=()=>{input.value=(+input.value||0)+1;recalcular()}
+  input.oninput=recalcular;
 
   body.appendChild(tr);
 }
 
 function td(e){const t=document.createElement("td");t.appendChild(e);return t}
+
+function recalcular(){
+  const items=[];
+  document.querySelectorAll("#body tr").forEach(tr=>{
+    const prod=tr.children[1].querySelector("select").value;
+    const qty=Number(tr.querySelector("input").value);
+    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
+  });
+
+  fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
+  .then(r=>r.json())
+  .then(res=>{
+    tU.textContent=res.totalUnidades;
+    tS.textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
+    tF.textContent="₡"+res.granTotal.toLocaleString("es-CR");
+    tP.textContent=res.descuentoPct.toFixed(1)+"%";
+  });
+}
 
 function generarResumen(){
   const rb=document.getElementById("resumen-body");
@@ -212,15 +246,13 @@ function generarResumen(){
     }
   });
 
-  const hoy=new Date(), vence=new Date();
-  vence.setDate(hoy.getDate()+8);
+  const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
+  rFecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
+  rVence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
 
-  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
-  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
-
-  document.getElementById("r-total-sin").textContent=tS.textContent;
-  document.getElementById("r-descuento").textContent=tP.textContent;
-  document.getElementById("r-total-final").textContent=tF.textContent;
+  rTotalSin.textContent=tS.textContent;
+  rDescuento.textContent=tP.textContent;
+  rTotalFinal.textContent=tF.textContent;
 
   html2canvas(document.getElementById("resumen"),{scale:2}).then(c=>{
     const a=document.createElement("a");
@@ -231,7 +263,7 @@ function generarResumen(){
 }
 
 function abrirWhatsApp(){
-  window.open("https://wa.me/","_blank");
+  window.open("https://wa.me/50664023753","_blank");
 }
 </script>
 </body>
