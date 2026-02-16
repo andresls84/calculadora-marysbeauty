@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Mayorista</title>
 
-<!-- ICONO PARA AGREGAR A INICIO (iOS / Android) -->
 <link rel="apple-touch-icon" href="./LogoBlanco.png">
 <link rel="icon" type="image/png" href="./LogoBlanco.png">
 
@@ -24,8 +23,6 @@ body{
   box-shadow:0 12px 30px rgba(0,0,0,.08);
   padding:20px;
 }
-
-/* HEADER */
 .header{
   display:flex;
   align-items:center;
@@ -42,7 +39,6 @@ body{
 .header img{height:100px}
 .header h2{margin:0}
 
-/* TABLE */
 table{width:100%;border-collapse:collapse}
 th,td{padding:10px;border-bottom:1px solid #e5e7eb}
 th{background:#f9fafb}
@@ -78,7 +74,6 @@ button{
 .add{background:#0f172a;color:#fff;margin-top:12px}
 .del{background:#fee2e2;color:#b91c1c}
 
-/* TOTALES */
 .totals{
   margin-top:18px;
   display:grid;
@@ -97,7 +92,6 @@ button{
   margin-top:6px;
 }
 
-/* ACTIONS */
 .actions{
   display:flex;
   gap:12px;
@@ -149,16 +143,9 @@ button{
 </div>
 </div>
 
-<!-- ================= RESUMEN OCULTO ================= -->
-<div id="resumen" style="
-  position:absolute;
-  left:-9999px;
-  width:420px;
-  background:#ffffff;
-  padding:20px;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
-  color:#000;
-">
+<!-- RESUMEN OCULTO -->
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#ffffff;padding:20px;font-family:inherit;color:#000">
+
   <div style="text-align:center;margin-bottom:8px;">
     <img src="./LogoBlanco.png" style="max-width:140px;">
   </div>
@@ -254,14 +241,20 @@ function recalcular(){
   let totalUnidades=0,total=0;
   const rows=document.querySelectorAll("#body tr");
 
-  rows.forEach(r=>{totalUnidades+=Number(r.querySelector("input").value||0);});
+  rows.forEach(r=>{
+    totalUnidades+=Number(r.querySelector("input").value||0);
+  });
 
   rows.forEach(r=>{
     const prod=r.children[1].querySelector("select").value;
     const qty=Number(r.querySelector("input").value||0);
     const pMay=r.children[3],pDet=r.children[4];
+
     if(!prod||qty<=0){pMay.textContent="—";pDet.textContent="—";return;}
+
     const p=productos.find(x=>x.nombre===prod);
+    if(!p) return;
+
     pDet.textContent="₡"+p.precio_lista.toLocaleString("es-CR");
 
     let precio=0;
@@ -273,11 +266,12 @@ function recalcular(){
     total+=precio*qty;
   });
 
-  tU.textContent=totalUnidades;
-  tF.textContent="₡"+total.toLocaleString("es-CR");
+  document.getElementById("tU").textContent=totalUnidades;
+  document.getElementById("tF").textContent="₡"+total.toLocaleString("es-CR");
 }
 
 function descargarResumen(){
+  const resumenDiv=document.getElementById("resumen");
   const rb=document.getElementById("resumen-body");
   rb.innerHTML="";
 
@@ -292,11 +286,11 @@ function descargarResumen(){
   const hoy=new Date(),vence=new Date();
   vence.setDate(hoy.getDate()+8);
 
-  rFecha.textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
-  rVence.textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
-  rTotal.textContent=tF.textContent;
+  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
+  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
+  document.getElementById("r-total").textContent=document.getElementById("tF").textContent;
 
-  html2canvas(resumen,{scale:2}).then(c=>{
+  html2canvas(resumenDiv,{scale:2}).then(c=>{
     const a=document.createElement("a");
     a.href=c.toDataURL("image/png");
     a.download="cotizacion_mayorista.png";
