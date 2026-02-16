@@ -40,16 +40,8 @@ body{
 .header img{height:100px}
 .header h2{margin:0;font-size:1.4rem}
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  min-width:650px;
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid #e5e7eb;
-  white-space:nowrap;
-}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #e5e7eb}
 th{background:#f9fafb}
 
 select,input{
@@ -72,22 +64,15 @@ button{
 .add{background:#e6007e;color:#fff;margin-top:12px}
 .del{background:#fee2e2;color:#b91c1c}
 
-.qty{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
+.qty{display:flex;align-items:center;gap:6px}
 .qty button{
-  width:32px;
-  height:32px;
-  font-size:18px;
+  width:32px;height:32px;
   background:#e5e7eb;
+  border:none;
   border-radius:8px;
+  font-size:18px;
 }
-.qty input{
-  width:60px;
-  text-align:center;
-}
+.qty input{width:60px;text-align:center}
 
 .totals{
   margin-top:18px;
@@ -159,8 +144,8 @@ button{
 </div>
 </div>
 
-<!-- RESUMEN OCULTO -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px;font-family:inherit">
+<!-- RESUMEN -->
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
 
   <div style="text-align:center;margin-bottom:8px">
     <img src="./LogoRosado.png" style="max-width:140px">
@@ -184,8 +169,8 @@ button{
     <thead>
       <tr>
         <th style="text-align:left">Producto</th>
-        <th style="text-align:center;width:52px">Cant.</th>
-        <th style="text-align:right;width:110px">Precio Unit.</th>
+        <th style="text-align:center">Cant.</th>
+        <th style="text-align:right">Precio Unit.</th>
       </tr>
     </thead>
     <tbody id="resumen-body"></tbody>
@@ -273,8 +258,8 @@ function td(el){const td=document.createElement("td");td.appendChild(el);return 
 function recalcular(){
   const items=[];
   document.querySelectorAll("#body tr").forEach(tr=>{
-    const prod=tr.querySelector("td:nth-child(2) select")?.value;
-    const qty=Number(tr.querySelector("td:nth-child(3) input")?.value);
+    const prod=tr.children[1].querySelector("select").value;
+    const qty=Number(tr.querySelector("input").value);
     if(prod && qty>0) items.push({producto:prod,cantidad:qty});
   });
 
@@ -282,32 +267,29 @@ function recalcular(){
   .then(r=>r.json())
   .then(res=>{
     document.getElementById("tU").textContent=res.totalUnidades;
-    document.getElementById("tS").textContent="₡"+Number(res.totalSinDescuento).toLocaleString("es-CR");
-    document.getElementById("tF").textContent="₡"+Number(res.granTotal).toLocaleString("es-CR");
-    document.getElementById("tP").textContent=Number(res.descuentoPct).toFixed(1)+"%";
+    document.getElementById("tS").textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
+    document.getElementById("tF").textContent="₡"+res.granTotal.toLocaleString("es-CR");
+    document.getElementById("tP").textContent=res.descuentoPct.toFixed(1)+"%";
   });
 }
 
 function descargarResumen(){
   const resumenDiv=document.getElementById("resumen");
   const rb=document.getElementById("resumen-body");
+  rb.innerHTML="";
 
-  while(rb.firstChild) rb.removeChild(rb.firstChild);
-
-  document.querySelectorAll("#body tr").forEach(tr=>{
-    const producto=tr.querySelector("td:nth-child(2) select")?.value.trim();
-    const cantidad=parseInt(tr.querySelector("td:nth-child(3) input")?.value,10)||0;
-    const precio=tr.querySelector("td:nth-child(4)")?.textContent.trim();
+  document.querySelectorAll("#body tr").forEach(r=>{
+    const producto=r.children[1].querySelector("select").value;
+    const cantidad=r.children[2].querySelector("input").value;
+    const precio=r.children[3].textContent;
 
     if(producto && cantidad>0){
-      const fila=document.createElement("tr");
-
-      fila.innerHTML=`
-        <td>${producto}</td>
-        <td style="text-align:center">${cantidad}</td>
-        <td style="text-align:right;font-weight:600">${precio}</td>
-      `;
-      rb.appendChild(fila);
+      rb.innerHTML+=`
+        <tr>
+          <td>${producto}</td>
+          <td style="text-align:center">${cantidad}</td>
+          <td style="text-align:right;font-weight:600">${precio}</td>
+        </tr>`;
     }
   });
 
@@ -320,15 +302,12 @@ function descargarResumen(){
   document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
   document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
 
-  setTimeout(()=>{
-    html2canvas(resumenDiv,{scale:2,backgroundColor:"#ffffff"})
-    .then(canvas=>{
-      const a=document.createElement("a");
-      a.href=canvas.toDataURL("image/png");
-      a.download="cotizacion_detalle.png";
-      a.click();
-    });
-  },150);
+  html2canvas(resumenDiv,{scale:2}).then(c=>{
+    const a=document.createElement("a");
+    a.href=c.toDataURL("image/png");
+    a.download="cotizacion_detalle.png";
+    a.click();
+  });
 }
 
 function abrirWhatsApp(){window.open("https://wa.me/","_blank");}
