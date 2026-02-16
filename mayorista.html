@@ -143,7 +143,7 @@ button{
 </div>
 </div>
 
-<!-- RESUMEN OCULTO -->
+<!-- ================= RESUMEN OCULTO ================= -->
 <div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#ffffff;padding:20px;font-family:inherit;color:#000">
 
   <div style="text-align:center;margin-bottom:8px;">
@@ -165,6 +165,13 @@ button{
   <p id="r-vence"></p>
 
   <table style="width:100%;font-size:14px;border-collapse:collapse">
+    <thead>
+      <tr>
+        <th style="text-align:left">Producto</th>
+        <th style="text-align:center">Cant.</th>
+        <th style="text-align:right">Precio Unit.</th>
+      </tr>
+    </thead>
     <tbody id="resumen-body"></tbody>
   </table>
 
@@ -276,10 +283,17 @@ function descargarResumen(){
   rb.innerHTML="";
 
   document.querySelectorAll("#body tr").forEach(r=>{
-    const p=r.children[1].querySelector("select").value;
-    const q=r.querySelector("input").value;
-    if(p&&q>0){
-      rb.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    const producto=r.children[1].querySelector("select").value;
+    const cantidad=r.querySelector("input").value;
+    const precioMayorista=r.children[3].textContent;
+
+    if(producto && cantidad>0){
+      rb.innerHTML+=`
+        <tr>
+          <td>${producto}</td>
+          <td style="text-align:center">${cantidad}</td>
+          <td style="text-align:right;font-weight:600">${precioMayorista}</td>
+        </tr>`;
     }
   });
 
