@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora Detalle</title>
 
-<!-- ICONOS APP WEB -->
 <link rel="apple-touch-icon" href="./LogoRosado.png">
 <link rel="icon" type="image/png" href="./LogoRosado.png">
 
@@ -13,27 +12,18 @@
 
 <style>
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
   background:#f2f4f7;
 }
-
-.app{
-  max-width:1200px;
-  margin:20px auto;
-  padding:16px;
-}
-
+.app{max-width:1200px;margin:20px auto;padding:16px}
 .card{
   background:#fff;
   border-radius:18px;
   box-shadow:0 12px 30px rgba(0,0,0,.08);
   padding:20px;
 }
-
-/* HEADER */
 .header{
   display:flex;
   flex-direction:column;
@@ -44,31 +34,22 @@ body{
   color:#fff;
   padding:20px;
   border-radius:16px;
-  margin-bottom:18px;
+  margin-bottom:12px;
   text-align:center;
 }
-
 .header img{height:100px}
 .header h2{margin:0;font-size:1.4rem}
-
-/* TABLE */
-.table-wrap{
-  width:100%;
-  overflow-x:auto;
-}
 
 table{
   width:100%;
   border-collapse:collapse;
   min-width:650px;
 }
-
 th,td{
   padding:10px;
   border-bottom:1px solid #e5e7eb;
   white-space:nowrap;
 }
-
 th{background:#f9fafb}
 
 select,input{
@@ -81,26 +62,6 @@ select,input{
 
 .money{text-align:right;font-weight:600}
 
-.qty{
-  display:flex;
-  align-items:center;
-  gap:6px;
-}
-
-.qty button{
-  width:32px;
-  height:32px;
-  font-size:18px;
-  background:#e5e7eb;
-  border:none;
-  border-radius:8px;
-}
-
-.qty input{
-  width:60px;
-  text-align:center;
-}
-
 button{
   border:none;
   padding:10px 14px;
@@ -111,20 +72,35 @@ button{
 .add{background:#e6007e;color:#fff;margin-top:12px}
 .del{background:#fee2e2;color:#b91c1c}
 
+.qty{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.qty button{
+  width:32px;
+  height:32px;
+  font-size:18px;
+  background:#e5e7eb;
+  border-radius:8px;
+}
+.qty input{
+  width:60px;
+  text-align:center;
+}
+
 .totals{
   margin-top:18px;
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:14px;
 }
-
 .box{
   background:#f9fafb;
   border-radius:14px;
   padding:14px;
   text-align:center;
 }
-
 .box strong{
   display:block;
   font-size:1.2rem;
@@ -137,7 +113,6 @@ button{
   margin-top:16px;
   flex-wrap:wrap;
 }
-
 .download{background:#2563eb;color:#fff}
 .whatsapp{background:#25D366;color:#fff}
 .refresh{background:#6b7280;color:#fff}
@@ -149,11 +124,10 @@ button{
 <div class="card">
 
 <div class="header">
-  <img src="./LogoRosado.png" alt="Mary’s Beauty">
+  <img src="./LogoRosado.png">
   <h2>Calculadora de Ventas al Detalle</h2>
 </div>
 
-<div class="table-wrap">
 <table>
 <thead>
 <tr>
@@ -166,7 +140,6 @@ button{
 </thead>
 <tbody id="body"></tbody>
 </table>
-</div>
 
 <button class="add" onclick="agregarFila()">+ Agregar fila</button>
 
@@ -186,8 +159,9 @@ button{
 </div>
 </div>
 
-<!-- RESUMEN OCULTO -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
+<!-- ================= RESUMEN OCULTO ================= -->
+<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px;font-family:inherit">
+
   <div style="text-align:center;margin-bottom:8px">
     <img src="./LogoRosado.png" style="max-width:140px">
   </div>
@@ -206,7 +180,14 @@ button{
   <p id="r-fecha"></p>
   <p id="r-vence"></p>
 
-  <table style="width:100%;font-size:14px">
+  <table style="width:100%;font-size:14px;border-collapse:collapse">
+    <thead>
+      <tr>
+        <th style="text-align:left">Producto</th>
+        <th style="text-align:center">Cant.</th>
+        <th style="text-align:right">Precio Unit.</th>
+      </tr>
+    </thead>
     <tbody id="resumen-body"></tbody>
   </table>
 
@@ -221,20 +202,6 @@ button{
 
 <script>
 const API="https://script.google.com/macros/s/AKfycbxhqpaWClFRuTMWWnIEKINEWDJ1a926lVX3wVp0VmSrrxBx5osjsEuUePIiUaZTWBgQ/exec";
-
-const tU=document.getElementById("tU");
-const tS=document.getElementById("tS");
-const tF=document.getElementById("tF");
-const tP=document.getElementById("tP");
-
-const resumen=document.getElementById("resumen");
-const resumenBody=document.getElementById("resumen-body");
-const rFecha=document.getElementById("r-fecha");
-const rVence=document.getElementById("r-vence");
-const rTotalSin=document.getElementById("r-total-sin");
-const rDescuento=document.getElementById("r-descuento");
-const rTotalFinal=document.getElementById("r-total-final");
-
 let productos=[],marcas=[];
 
 fetch(API,{method:"POST",body:JSON.stringify({action:"productos"})})
@@ -258,20 +225,13 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
-
   const menos=document.createElement("button");menos.textContent="−";
   const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
   const mas=document.createElement("button");mas.textContent="＋";
-
   qtyBox.append(menos,cantidad,mas);
 
-  const precio=document.createElement("td");
-  precio.className="money";
-  precio.textContent="₡0";
-
-  const borrar=document.createElement("button");
-  borrar.textContent="🗑";
-  borrar.className="del";
+  const precio=document.createElement("td");precio.className="money";precio.textContent="₡0";
+  const borrar=document.createElement("button");borrar.textContent="🗑";borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
@@ -309,41 +269,53 @@ function recalcular(){
   document.querySelectorAll("#body tr").forEach(tr=>{
     const prod=tr.children[1].querySelector("select").value;
     const qty=Number(tr.querySelector("input").value);
-    if(prod&&qty>0) items.push({producto:prod,cantidad:qty});
+    if(prod && qty>0) items.push({producto:prod,cantidad:qty});
   });
 
   fetch(API,{method:"POST",body:JSON.stringify({action:"calcularDetalle",items})})
   .then(r=>r.json())
   .then(res=>{
-    tU.textContent=res.totalUnidades;
-    tS.textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
-    tF.textContent="₡"+res.granTotal.toLocaleString("es-CR");
-    tP.textContent=res.descuentoPct.toFixed(1)+"%";
+    document.getElementById("tU").textContent=res.totalUnidades;
+    document.getElementById("tS").textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
+    document.getElementById("tF").textContent="₡"+res.granTotal.toLocaleString("es-CR");
+    document.getElementById("tP").textContent=res.descuentoPct.toFixed(1)+"%";
   });
 }
 
 function descargarResumen(){
-  resumenBody.innerHTML="";
+  const resumenDiv=document.getElementById("resumen");
+  const rb=document.getElementById("resumen-body");
+  rb.innerHTML="";
+
   document.querySelectorAll("#body tr").forEach(tr=>{
-    const p=tr.children[1].querySelector("select").value;
-    const q=tr.querySelector("input").value;
-    if(p&&q>0){
-      resumenBody.innerHTML+=`<tr><td>${p}</td><td style="text-align:center">${q}</td></tr>`;
+    const producto=tr.children[1].querySelector("select").value;
+    const cantidad=tr.querySelector("input").value;
+    const precioLista=tr.children[3].textContent;
+
+    if(producto && cantidad>0){
+      rb.innerHTML+=`
+        <tr>
+          <td>${producto}</td>
+          <td style="text-align:center">${cantidad}</td>
+          <td style="text-align:right">${precioLista}</td>
+        </tr>`;
     }
   });
 
-  const h=new Date(),v=new Date();v.setDate(h.getDate()+8);
-  rFecha.textContent="Fecha: "+h.toLocaleDateString("es-CR");
-  rVence.textContent="Válido hasta: "+v.toLocaleDateString("es-CR");
+  const hoy=new Date(),vence=new Date();
+  vence.setDate(hoy.getDate()+8);
 
-  rTotalSin.textContent=tS.textContent;
-  rDescuento.textContent=tP.textContent;
-  rTotalFinal.textContent=tF.textContent;
+  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
+  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
 
-  html2canvas(resumen,{scale:2}).then(c=>{
+  document.getElementById("r-total-sin").textContent=document.getElementById("tS").textContent;
+  document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
+  document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
+
+  html2canvas(resumenDiv,{scale:2}).then(c=>{
     const a=document.createElement("a");
     a.href=c.toDataURL("image/png");
-    a.download="cotizacion_marys_beauty.png";
+    a.download="cotizacion_detalle.png";
     a.click();
   });
 }
