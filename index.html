@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,18 +13,33 @@
 
 <style>
 *{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
   background:#f2f4f7;
 }
-.app{max-width:1200px;margin:20px auto;padding:16px}
+
+.app{
+  max-width:1200px;
+  margin:20px auto;
+  padding:16px;
+}
+
 .card{
   background:#fff;
   border-radius:18px;
   box-shadow:0 12px 30px rgba(0,0,0,.08);
   padding:20px;
 }
+
+/* CONTENEDOR COMÚN HEADER + TABLA */
+.table-container{
+  width:100%;
+  overflow-x:auto;
+}
+
+/* HEADER */
 .header{
   display:flex;
   flex-direction:column;
@@ -40,16 +56,24 @@ body{
 .header img{height:100px}
 .header h2{margin:0;font-size:1.4rem}
 
+/* TABLE */
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+}
+
 table{
   width:100%;
   border-collapse:collapse;
   min-width:650px;
 }
+
 th,td{
   padding:10px;
   border-bottom:1px solid #e5e7eb;
   white-space:nowrap;
 }
+
 th{background:#f9fafb}
 
 select,input{
@@ -123,23 +147,29 @@ button{
 <div class="app">
 <div class="card">
 
-<div class="header">
-  <img src="./LogoRosado.png">
-  <h2>Calculadora de Ventas al Detalle</h2>
-</div>
+<div class="table-container">
 
-<table>
-<thead>
-<tr>
-  <th>Marca</th>
-  <th>Producto</th>
-  <th>Cantidad</th>
-  <th>Precio Unitario</th>
-  <th>Acción</th>
-</tr>
-</thead>
-<tbody id="body"></tbody>
-</table>
+  <div class="header">
+    <img src="./LogoRosado.png" alt="Mary’s Beauty">
+    <h2>Calculadora de Ventas al Detalle</h2>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Marca</th>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio Unitario</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+
+</div>
 
 <button class="add" onclick="agregarFila()">+ Agregar fila</button>
 
@@ -159,9 +189,8 @@ button{
 </div>
 </div>
 
-<!-- ================= RESUMEN OCULTO ================= -->
+<!-- RESUMEN OCULTO -->
 <div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px;font-family:inherit">
-
   <div style="text-align:center;margin-bottom:8px">
     <img src="./LogoRosado.png" style="max-width:140px">
   </div>
@@ -183,9 +212,9 @@ button{
   <table style="width:100%;font-size:14px;border-collapse:collapse">
     <thead>
       <tr>
-        <th style="text-align:left">Producto</th>
-        <th style="text-align:center">Cant.</th>
-        <th style="text-align:right">Precio Unit.</th>
+        <th style="text-align:left;padding:6px 0">Producto</th>
+        <th style="text-align:center;padding:6px 0;width:52px">Cant.</th>
+        <th style="text-align:right;padding:6px 0;width:110px">Precio Unit.</th>
       </tr>
     </thead>
     <tbody id="resumen-body"></tbody>
@@ -225,13 +254,19 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
-  const menos=document.createElement("button");menos.textContent="−";
+  const menos=document.createElement("button");menos.type="button";menos.textContent="−";
   const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
-  const mas=document.createElement("button");mas.textContent="＋";
+  const mas=document.createElement("button");mas.type="button";mas.textContent="＋";
   qtyBox.append(menos,cantidad,mas);
 
-  const precio=document.createElement("td");precio.className="money";precio.textContent="₡0";
-  const borrar=document.createElement("button");borrar.textContent="🗑";borrar.className="del";
+  const precio=document.createElement("td");
+  precio.className="money";
+  precio.textContent="₡0";
+
+  const borrar=document.createElement("button");
+  borrar.type="button";
+  borrar.textContent="🗑";
+  borrar.className="del";
   borrar.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qtyBox),precio,td(borrar));
@@ -250,7 +285,9 @@ function agregarFila(){
     const p=productos.find(x=>x.nombre===producto.value);
     if(p){
       cantidad.value=1;
-      precio.textContent="₡"+p.precioLista.toLocaleString("es-CR");
+      precio.textContent="₡"+Number(p.precioLista).toLocaleString("es-CR");
+    } else {
+      precio.textContent="₡0";
     }
     recalcular();
   };
@@ -276,48 +313,91 @@ function recalcular(){
   .then(r=>r.json())
   .then(res=>{
     document.getElementById("tU").textContent=res.totalUnidades;
-    document.getElementById("tS").textContent="₡"+res.totalSinDescuento.toLocaleString("es-CR");
-    document.getElementById("tF").textContent="₡"+res.granTotal.toLocaleString("es-CR");
-    document.getElementById("tP").textContent=res.descuentoPct.toFixed(1)+"%";
+    document.getElementById("tS").textContent="₡"+Number(res.totalSinDescuento).toLocaleString("es-CR");
+    document.getElementById("tF").textContent="₡"+Number(res.granTotal).toLocaleString("es-CR");
+    document.getElementById("tP").textContent=Number(res.descuentoPct).toFixed(1)+"%";
   });
 }
 
 function descargarResumen(){
-  const resumenDiv=document.getElementById("resumen");
-  const rb=document.getElementById("resumen-body");
-  rb.innerHTML="";
+  const resumenDiv = document.getElementById("resumen");
+  const rb = document.getElementById("resumen-body");
 
+  // Limpiar de forma segura
+  while (rb.firstChild) rb.removeChild(rb.firstChild);
+
+  // Construir filas con createElement para evitar inconsistencias al capturar
   document.querySelectorAll("#body tr").forEach(tr=>{
-    const producto=tr.children[1].querySelector("select").value;
-    const cantidad=tr.querySelector("input").value;
-    const precioLista=tr.children[3].textContent;
+    const selProd = tr.children[1]?.querySelector("select");
+    const inpQty = tr.querySelector("input");
+    const tdPrecio = tr.children[3]; // columna "Precio Unitario" (lista)
 
-    if(producto && cantidad>0){
-      rb.innerHTML+=`
-        <tr>
-          <td>${producto}</td>
-          <td style="text-align:center">${cantidad}</td>
-          <td style="text-align:right">${precioLista}</td>
-        </tr>`;
+    if(!selProd || !inpQty || !tdPrecio) return;
+
+    const producto = (selProd.value || "").trim();
+    const cantidad = String(inpQty.value || "").trim();
+    const precioListaPantalla = (tdPrecio.textContent || "₡0").trim();
+
+    if(producto && cantidad && Number(cantidad) > 0){
+      const fila = document.createElement("tr");
+
+      const cProd = document.createElement("td");
+      cProd.textContent = producto;
+      cProd.style.padding = "4px 0";
+
+      const cQty = document.createElement("td");
+      cQty.textContent = cantidad;
+      cQty.style.textAlign = "center";
+      cQty.style.padding = "4px 0";
+
+      const cPrecio = document.createElement("td");
+      cPrecio.textContent = precioListaPantalla;
+      cPrecio.style.textAlign = "right";
+      cPrecio.style.padding = "4px 0";
+      cPrecio.style.fontWeight = "600";
+
+      fila.appendChild(cProd);
+      fila.appendChild(cQty);
+      fila.appendChild(cPrecio);
+      rb.appendChild(fila);
     }
   });
 
+  // Si no hay productos
+  if(rb.children.length === 0){
+    const fila = document.createElement("tr");
+    const celda = document.createElement("td");
+    celda.colSpan = 3;
+    celda.textContent = "No hay productos seleccionados";
+    celda.style.textAlign = "center";
+    celda.style.padding = "10px";
+    fila.appendChild(celda);
+    rb.appendChild(fila);
+  }
+
+  // Fechas y totales
   const hoy=new Date(),vence=new Date();
   vence.setDate(hoy.getDate()+8);
 
-  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
-  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
+  document.getElementById("r-fecha").textContent = "Fecha: " + hoy.toLocaleDateString("es-CR");
+  document.getElementById("r-vence").textContent = "Válido hasta: " + vence.toLocaleDateString("es-CR");
 
-  document.getElementById("r-total-sin").textContent=document.getElementById("tS").textContent;
-  document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
-  document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
+  document.getElementById("r-total-sin").textContent = document.getElementById("tS").textContent;
+  document.getElementById("r-descuento").textContent = document.getElementById("tP").textContent;
+  document.getElementById("r-total-final").textContent = document.getElementById("tF").textContent;
 
-  html2canvas(resumenDiv,{scale:2}).then(c=>{
-    const a=document.createElement("a");
-    a.href=c.toDataURL("image/png");
-    a.download="cotizacion_detalle.png";
-    a.click();
-  });
+  // Esperar un tick para asegurar render del DOM antes de capturar
+  setTimeout(()=>{
+    html2canvas(resumenDiv,{scale:2, backgroundColor:"#ffffff"}).then(c=>{
+      const a=document.createElement("a");
+      a.href=c.toDataURL("image/png");
+      a.download="cotizacion_detalle.png";
+      a.click();
+    }).catch(err=>{
+      console.error("Error generando imagen:", err);
+      alert("Error al generar la imagen. Revisá la consola (F12) para ver el detalle.");
+    });
+  }, 100);
 }
 
 function abrirWhatsApp(){window.open("https://wa.me/","_blank");}
@@ -330,4 +410,4 @@ function refrescarApp(){
 </script>
 </body>
 </html>
- 
+```
