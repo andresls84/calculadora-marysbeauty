@@ -1,6 +1,5 @@
 <!-- =========================
-     CALCULADORA DETALLE (SIN WHATSAPP + SIN CORTE EN iPHONE) - CORREGIDA
-     (Se mantiene todo igual, solo se refuerza validación en descargarResumen)
+     CALCULADORA DETALLE (SIN WHATSAPP + SIN CORTE EN iPHONE)
 ========================= -->
 <!DOCTYPE html>
 <html lang="es">
@@ -62,11 +61,12 @@ body{
 
 .table-container{
   flex:1 1 auto;
-  overflow:auto;
+  overflow:auto;               /* permite scroll horizontal/vertical SOLO dentro de la tabla si hace falta */
   border:1px solid #e5e7eb;
   border-radius:12px;
 }
 
+/* CLAVE: min-width para evitar compresión excesiva en iPhone */
 table{
   width:100%;
   border-collapse:collapse;
@@ -79,7 +79,7 @@ th,td{
   border-bottom:1px solid #e5e7eb;
   vertical-align:middle;
   word-break:break-word;
-  white-space:normal;
+  white-space:normal;          /* evita encabezados cortados */
 }
 
 th{
@@ -89,11 +89,12 @@ th{
   z-index:1;
 }
 
-th:nth-child(1), td:nth-child(1){min-width:140px;}
-th:nth-child(2), td:nth-child(2){min-width:220px;}
-th:nth-child(3), td:nth-child(3){min-width:140px;}
-th:nth-child(4), td:nth-child(4){min-width:140px;}
-th:nth-child(5), td:nth-child(5){min-width:80px;}
+/* Anchos mínimos por columna (flexibles) */
+th:nth-child(1), td:nth-child(1){min-width:140px;} /* Marca */
+th:nth-child(2), td:nth-child(2){min-width:220px;} /* Producto */
+th:nth-child(3), td:nth-child(3){min-width:140px;} /* Cantidad */
+th:nth-child(4), td:nth-child(4){min-width:140px;} /* Precio */
+th:nth-child(5), td:nth-child(5){min-width:80px;}  /* Acción */
 
 select,input{
   width:100%;
@@ -174,6 +175,7 @@ button{
 .download{background:#2563eb;color:#fff}
 .refresh{background:#6b7280;color:#fff}
 
+/* iPhone: totales en 2 columnas para que no se amontonen */
 @media (max-width:430px){
   .app{padding:10px}
   .card{padding:12px}
@@ -230,14 +232,14 @@ button{
 </div>
 
 <!-- RESUMEN -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#fff;padding:20px">
+<div id="resumen" style="position:absolute;left:-9999px;width:560px;background:#fff;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;color:#000">
   <div style="text-align:center;margin-bottom:8px">
-    <img src="./LogoRosado.png" style="max-width:140px">
+    <img src="./LogoRosado.png" style="max-width:160px">
   </div>
 
   <div style="text-align:center;font-size:13px;margin-bottom:10px">
     <div>Alajuela, Costa Rica</div>
-    <div style="display:flex;justify-content:center;gap:6px;margin-top:4px">
+    <div style="display:flex;justify-content:center;gap:6px;margin-top:4px;align-items:center">
       <img src="./LogoWhatsApp.png" style="height:18px">
       <span>6402-3753</span>
     </div>
@@ -245,28 +247,33 @@ button{
 
   <hr>
 
-  <h3 style="text-align:center">Resumen de cotización</h3>
-  <p id="r-fecha"></p>
-  <p id="r-vence"></p>
+  <h3 style="text-align:center;margin:10px 0">Resumen de cotización</h3>
+  <p id="r-fecha" style="margin:0 0 6px 0"></p>
+  <p id="r-vence" style="margin:0 0 12px 0"></p>
 
-  <table style="width:100%;font-size:14px;border-collapse:collapse">
+  <table style="width:100%;font-size:14px;border-collapse:collapse;table-layout:fixed">
+    <colgroup>
+      <col style="width:62%">
+      <col style="width:14%">
+      <col style="width:24%">
+    </colgroup>
     <thead>
-      <tr>
-        <th style="text-align:left">Producto</th>
-        <th style="text-align:center">Cant.</th>
-        <th style="text-align:right">Precio Unit.</th>
+      <tr style="background:#f3f4f6">
+        <th style="text-align:left;padding:10px 8px;border-bottom:1px solid #e5e7eb">Producto</th>
+        <th style="text-align:center;padding:10px 8px;border-bottom:1px solid #e5e7eb">Cant.</th>
+        <th style="text-align:right;padding:10px 8px;border-bottom:1px solid #e5e7eb">Precio Unit.</th>
       </tr>
     </thead>
     <tbody id="resumen-body"></tbody>
   </table>
 
-  <hr>
+  <hr style="margin:14px 0">
 
-  <p>Total sin descuento: <strong id="r-total-sin"></strong></p>
-  <p>Descuento aplicado: <strong id="r-descuento"></strong></p>
-  <p style="font-size:18px"><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
+  <p style="margin:0 0 6px 0">Total sin descuento: <strong id="r-total-sin"></strong></p>
+  <p style="margin:0 0 10px 0">Descuento aplicado: <strong id="r-descuento"></strong></p>
+  <p style="font-size:20px;margin:0"><strong>Total a pagar: <span id="r-total-final"></span></strong></p>
 
-  <p style="font-size:12px">Los productos están sujetos a disponibilidad.</p>
+  <p style="font-size:12px;margin-top:12px">Los productos están sujetos a disponibilidad.</p>
 </div>
 
 <script>
@@ -370,9 +377,9 @@ function descargarResumen(){
     if(producto && cantidad>0){
       rb.innerHTML+=`
         <tr>
-          <td>${producto}</td>
-          <td style="text-align:center">${cantidad}</td>
-          <td style="text-align:right;font-weight:600">${precio}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;overflow-wrap:anywhere">${producto}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:center;font-weight:600">${cantidad}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;white-space:nowrap">${precio}</td>
         </tr>`;
     }
   });
@@ -386,7 +393,7 @@ function descargarResumen(){
   document.getElementById("r-descuento").textContent=document.getElementById("tP").textContent;
   document.getElementById("r-total-final").textContent=document.getElementById("tF").textContent;
 
-  html2canvas(resumenDiv,{scale:2}).then(c=>{
+  html2canvas(resumenDiv,{scale:2, backgroundColor:"#ffffff"}).then(c=>{
     const a=document.createElement("a");
     a.href=c.toDataURL("image/png");
     a.download="cotizacion_detalle.png";
