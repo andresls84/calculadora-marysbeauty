@@ -337,6 +337,7 @@ function recalcular(){
   let totalUnidades=0,total=0;
   const rows=document.querySelectorAll("#body tr");
 
+  // total combinado
   rows.forEach(r=>{
     totalUnidades+=Number(r.querySelector("input").value||0);
   });
@@ -354,9 +355,23 @@ function recalcular(){
     pDet.textContent="₡"+p.precio_lista.toLocaleString("es-CR");
 
     let precio=0;
-    if(qty>=24) precio=p.precio_24;
-    else if(totalUnidades>=12) precio=p.precio_12;
-    else if(totalUnidades>=6) precio=p.precio_6_11;
+
+    // 1) NUEVA REGLA: 48+ combinado => precio_24 para TODOS (si existe)
+    if(totalUnidades>=48 && Number(p.precio_24||0)>0){
+      precio=Number(p.precio_24);
+
+    // 2) Regla existente: 24+ del mismo producto
+    } else if(qty>=24 && Number(p.precio_24||0)>0){
+      precio=Number(p.precio_24);
+
+    // 3) Regla existente: 12+ combinado
+    } else if(totalUnidades>=12 && Number(p.precio_12||0)>0){
+      precio=Number(p.precio_12);
+
+    // 4) Regla existente: 6+ combinado
+    } else if(totalUnidades>=6 && Number(p.precio_6_11||0)>0){
+      precio=Number(p.precio_6_11);
+    }
 
     pMay.textContent=precio?("₡"+precio.toLocaleString("es-CR")):"—";
     total+=precio*qty;
