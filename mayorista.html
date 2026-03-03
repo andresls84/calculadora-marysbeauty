@@ -1,8 +1,5 @@
 <!-- =========================
-     CALCULADORA MAYORISTA (SIN WHATSAPP + SIN CORTE EN iPHONE) - CORREGIDA
-     Cambios:
-     - Regla 48+ combinadas => precio_24 para TODOS (si existe)
-     - descargarResumen no mete filas con precio "—"
+     CALCULADORA MAYORISTA (SIN WHATSAPP + SIN CORTE EN iPHONE)
 ========================= -->
 <!DOCTYPE html>
 <html lang="es">
@@ -73,7 +70,7 @@ table{
   width:100%;
   border-collapse:collapse;
   table-layout:auto;
-  min-width:820px;
+  min-width:820px;            /* 6 columnas: evita compresión en iPhone */
 }
 
 th,td{
@@ -91,12 +88,13 @@ th{
   z-index:1;
 }
 
-th:nth-child(1), td:nth-child(1){min-width:140px;}
-th:nth-child(2), td:nth-child(2){min-width:240px;}
-th:nth-child(3), td:nth-child(3){min-width:140px;}
-th:nth-child(4), td:nth-child(4){min-width:150px;}
-th:nth-child(5), td:nth-child(5){min-width:150px;}
-th:nth-child(6), td:nth-child(6){min-width:80px;}
+/* Mínimos por columna */
+th:nth-child(1), td:nth-child(1){min-width:140px;} /* Marca */
+th:nth-child(2), td:nth-child(2){min-width:240px;} /* Producto */
+th:nth-child(3), td:nth-child(3){min-width:140px;} /* Cantidad */
+th:nth-child(4), td:nth-child(4){min-width:150px;} /* Precio Mayorista */
+th:nth-child(5), td:nth-child(5){min-width:150px;} /* Precio Detalle */
+th:nth-child(6), td:nth-child(6){min-width:80px;}  /* Acción */
 
 select,input{
   width:100%;
@@ -232,9 +230,9 @@ button{
 </div>
 
 <!-- ================= RESUMEN OCULTO ================= -->
-<div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#ffffff;padding:20px;font-family:inherit;color:#000">
+<div id="resumen" style="position:absolute;left:-9999px;width:560px;background:#ffffff;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;color:#000">
   <div style="text-align:center;margin-bottom:8px;">
-    <img src="./LogoBlanco.png" style="max-width:140px;">
+    <img src="./LogoBlanco.png" style="max-width:160px;">
   </div>
 
   <div style="text-align:center;font-size:13px;margin-bottom:10px;">
@@ -247,30 +245,35 @@ button{
 
   <hr>
 
-  <h3 style="text-align:center;margin:8px 0;">Resumen de cotización</h3>
-  <p id="r-fecha"></p>
-  <p id="r-vence"></p>
+  <h3 style="text-align:center;margin:10px 0;">Resumen de cotización</h3>
+  <p id="r-fecha" style="margin:0 0 6px 0"></p>
+  <p id="r-vence" style="margin:0 0 12px 0"></p>
 
-  <table style="width:100%;font-size:14px;border-collapse:collapse">
+  <table style="width:100%;font-size:14px;border-collapse:collapse;table-layout:fixed">
+    <colgroup>
+      <col style="width:62%">
+      <col style="width:14%">
+      <col style="width:24%">
+    </colgroup>
     <thead>
-      <tr>
-        <th style="text-align:left">Producto</th>
-        <th style="text-align:center">Cant.</th>
-        <th style="text-align:right">Precio Unit.</th>
+      <tr style="background:#f3f4f6">
+        <th style="text-align:left;padding:10px 8px;border-bottom:1px solid #e5e7eb">Producto</th>
+        <th style="text-align:center;padding:10px 8px;border-bottom:1px solid #e5e7eb">Cant.</th>
+        <th style="text-align:right;padding:10px 8px;border-bottom:1px solid #e5e7eb">Precio Unit.</th>
       </tr>
     </thead>
     <tbody id="resumen-body"></tbody>
   </table>
 
-  <hr>
+  <hr style="margin:14px 0">
 
-  <p style="font-size:18px;text-align:center">
+  <p style="font-size:20px;text-align:center;margin:0">
     <strong>Total a pagar:<br>
       <span id="r-total"></span>
     </strong>
   </p>
 
-  <p style="font-size:12px;text-align:center;margin-top:10px">
+  <p style="font-size:12px;text-align:center;margin-top:12px">
     Los productos están sujetos a disponibilidad al momento de la compra.
   </p>
 </div>
@@ -393,13 +396,12 @@ function descargarResumen(){
     const cantidad=Number(r.querySelector("input").value||0);
     const precioMayorista=r.children[3].textContent;
 
-    // No meter filas sin precio (—), porque en el resumen “se omite info relevante”
-    if(producto && cantidad>0 && precioMayorista && precioMayorista !== "—"){
+    if(producto && cantidad>0){
       rb.innerHTML+=`
         <tr>
-          <td>${producto}</td>
-          <td style="text-align:center">${cantidad}</td>
-          <td style="text-align:right;font-weight:600">${precioMayorista}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;overflow-wrap:anywhere">${producto}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:center;font-weight:600">${cantidad}</td>
+          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;white-space:nowrap">${precioMayorista}</td>
         </tr>`;
     }
   });
@@ -411,7 +413,7 @@ function descargarResumen(){
   document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
   document.getElementById("r-total").textContent=document.getElementById("tF").textContent;
 
-  html2canvas(resumenDiv,{scale:2}).then(c=>{
+  html2canvas(resumenDiv,{scale:2, backgroundColor:"#ffffff"}).then(c=>{
     const a=document.createElement("a");
     a.href=c.toDataURL("image/png");
     a.download="cotizacion_mayorista.png";
