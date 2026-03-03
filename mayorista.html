@@ -1,5 +1,5 @@
 <!-- =========================
-     CALCULADORA MAYORISTA (SIN BOTÓN WHATSAPP)
+     CALCULADORA MAYORISTA (AJUSTADA A PANTALLA + SIN BOTÓN WHATSAPP)
 ========================= -->
 <!DOCTYPE html>
 <html lang="es">
@@ -14,139 +14,219 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
+*{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
   background:#f2f4f7;
+  min-height:100vh;
 }
-.app{max-width:1200px;margin:20px auto;padding:16px}
+
+.app{
+  max-width:1200px;
+  margin:0 auto;
+  padding:12px;
+  height:100vh;
+  display:flex;
+}
+
 .card{
   background:#fff;
   border-radius:18px;
   box-shadow:0 12px 30px rgba(0,0,0,.08);
-  padding:20px;
+  padding:14px;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden; /* evita desbordes laterales */
 }
+
 .header{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:20px;
+  gap:12px;
   background:#0f172a;
   color:#fff;
-  padding:24px;
+  padding:14px;
   border-radius:16px;
-  margin-bottom:18px;
+  margin-bottom:10px;
   flex-wrap:wrap;
   text-align:center;
+  flex:0 0 auto;
 }
-.header img{height:100px}
-.header h2{margin:0}
+.header img{height:84px}
+.header h2{margin:0;font-size:1.25rem}
 
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #e5e7eb}
-th{background:#f9fafb}
+.table-container{
+  flex:1 1 auto;
+  overflow:auto;              /* scroll SOLO dentro de la tabla si hace falta */
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;          /* fuerza columnas a encajar */
+}
+th,td{
+  padding:8px;
+  border-bottom:1px solid #e5e7eb;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  vertical-align:middle;
+}
+th{
+  background:#f9fafb;
+  position:sticky;
+  top:0;
+  z-index:1;
+}
+
+/* Anchos por columna (6 columnas) */
+th:nth-child(1){width:16%}     /* Marca */
+th:nth-child(2){width:24%}     /* Producto */
+th:nth-child(3){width:18%}     /* Cantidad */
+th:nth-child(4){width:16%}     /* Precio Mayorista */
+th:nth-child(5){width:16%}     /* Precio Detalle */
+th:nth-child(6){width:10%}     /* Acción */
 
 select,input{
   width:100%;
-  padding:8px;
+  padding:6px;
   border:1px solid #d1d5db;
   border-radius:10px;
-  font-size:15px;
+  font-size:14px;
+  min-width:0;
 }
 
-.money{text-align:right;font-weight:600}
+.money{text-align:right;font-weight:600; white-space:nowrap}
 
-.qty{display:flex;align-items:center;gap:6px}
+.qty{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  flex-wrap:nowrap;
+}
 .qty button{
-  width:32px;height:32px;
+  width:28px;height:28px;
   background:#e5e7eb;
   border:none;
   border-radius:8px;
-  font-size:18px;
+  font-size:16px;
   cursor:pointer;
+  padding:0;
+  flex:0 0 auto;
 }
-.qty input{width:60px;text-align:center}
+.qty input{
+  width:44px;
+  text-align:center;
+  padding:4px;
+  flex:0 0 auto;
+}
 
 button{
   border:none;
-  padding:10px 14px;
+  padding:9px 12px;
   border-radius:12px;
   cursor:pointer;
+  font-size:14px;
 }
 
-.add{background:#0f172a;color:#fff;margin-top:12px}
-.del{background:#fee2e2;color:#b91c1c}
+.add{background:#0f172a;color:#fff;margin-top:10px;flex:0 0 auto}
+.del{background:#fee2e2;color:#b91c1c;padding:7px 10px;border-radius:10px}
 
 .totals{
-  margin-top:18px;
+  margin-top:10px;
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  flex:0 0 auto;
 }
 .box{
   background:#f9fafb;
   border-radius:14px;
-  padding:14px;
+  padding:10px;
   text-align:center;
+  font-size:0.95rem;
 }
 .box strong{
   display:block;
-  font-size:1.2rem;
-  margin-top:6px;
+  font-size:1.05rem;
+  margin-top:4px;
 }
 
 .actions{
   display:flex;
-  gap:12px;
-  margin-top:16px;
+  gap:10px;
+  margin-top:10px;
   flex-wrap:wrap;
+  flex:0 0 auto;
 }
 .download{background:#2563eb;color:#fff}
 .refresh{background:#6b7280;color:#fff}
+
+/* Ajustes para pantallas pequeñas (iPhone) */
+@media (max-width:430px){
+  .app{padding:10px}
+  .card{padding:12px}
+  .header{padding:12px;margin-bottom:8px}
+  .header img{height:72px}
+  .header h2{font-size:1.1rem}
+  th,td{padding:6px}
+  select,input{font-size:13px;padding:5px}
+  .qty button{width:26px;height:26px}
+  .qty input{width:40px}
+  button{font-size:13px;padding:8px 10px}
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-<div class="card">
+  <div class="card">
 
-<div class="header">
-  <img src="./LogoBlanco.png">
-  <h2>Calculadora de Ventas al Por Mayor</h2>
-</div>
+    <div class="header">
+      <img src="./LogoBlanco.png" alt="Mary's Beauty">
+      <h2>Calculadora de Ventas al Por Mayor</h2>
+    </div>
 
-<table>
-<thead>
-<tr>
-  <th>Marca</th>
-  <th>Producto</th>
-  <th>Cantidad</th>
-  <th>Precio Mayorista</th>
-  <th>Precio Detalle</th>
-  <th>Acción</th>
-</tr>
-</thead>
-<tbody id="body"></tbody>
-</table>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Marca</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Mayorista</th>
+            <th>Precio Detalle</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
 
-<button class="add" onclick="agregarFila()">+ Agregar fila</button>
+    <button class="add" onclick="agregarFila()">+ Agregar fila</button>
 
-<div class="totals">
-  <div class="box">Total de productos<strong id="tU">0</strong></div>
-  <div class="box">Total a pagar<strong id="tF">₡0</strong></div>
-</div>
+    <div class="totals">
+      <div class="box">Total de productos<strong id="tU">0</strong></div>
+      <div class="box">Total a pagar<strong id="tF">₡0</strong></div>
+    </div>
 
-<div class="actions">
-  <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
-  <button class="refresh" onclick="refrescarApp()">🔄 Refrescar</button>
-</div>
+    <div class="actions">
+      <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
+      <button class="refresh" onclick="refrescarApp()">🔄 Refrescar</button>
+    </div>
 
-</div>
+  </div>
 </div>
 
 <!-- ================= RESUMEN OCULTO ================= -->
 <div id="resumen" style="position:absolute;left:-9999px;width:420px;background:#ffffff;padding:20px;font-family:inherit;color:#000">
-
   <div style="text-align:center;margin-bottom:8px;">
     <img src="./LogoBlanco.png" style="max-width:140px;">
   </div>
@@ -214,16 +294,18 @@ function agregarFila(){
 
   const qtyBox=document.createElement("div");
   qtyBox.className="qty";
-  const menos=document.createElement("button");menos.textContent="−";
+  const menos=document.createElement("button");menos.type="button";menos.textContent="−";
   const cantidad=document.createElement("input");cantidad.type="number";cantidad.min=1;
-  const mas=document.createElement("button");mas.textContent="＋";
+  const mas=document.createElement("button");mas.type="button";mas.textContent="＋";
   qtyBox.append(menos,cantidad,mas);
 
   const pMay=document.createElement("td");pMay.className="money";pMay.textContent="—";
   const pDet=document.createElement("td");pDet.className="money";pDet.textContent="—";
 
   const del=document.createElement("button");
-  del.textContent="🗑";del.className="del";
+  del.type="button";
+  del.textContent="🗑";
+  del.className="del";
   del.onclick=()=>{tr.remove();recalcular();};
 
   tr.append(td(marca),td(producto),td(qtyBox),pMay,pDet,td(del));
@@ -233,6 +315,8 @@ function agregarFila(){
     producto.disabled=!marca.value;
     productos.filter(p=>p.marca===marca.value)
       .forEach(p=>producto.innerHTML+=`<option>${p.nombre}</option>`);
+    cantidad.value="";
+    recalcular();
   };
 
   producto.onchange=()=>{cantidad.value=1;recalcular();}
