@@ -1,5 +1,8 @@
 <!-- =========================
-     CALCULADORA MAYORISTA (SIN WHATSAPP + SIN CORTE EN iPHONE)
+     CALCULADORA MAYORISTA (SIN WHATSAPP + SIN CORTE EN iPHONE) - CORREGIDA
+     Cambios:
+     - Regla 48+ combinadas => precio_24 para TODOS (si existe)
+     - descargarResumen no mete filas con precio "—"
 ========================= -->
 <!DOCTYPE html>
 <html lang="es">
@@ -70,7 +73,7 @@ table{
   width:100%;
   border-collapse:collapse;
   table-layout:auto;
-  min-width:820px;            /* 6 columnas: evita compresión en iPhone */
+  min-width:820px;
 }
 
 th,td{
@@ -88,13 +91,12 @@ th{
   z-index:1;
 }
 
-/* Mínimos por columna */
-th:nth-child(1), td:nth-child(1){min-width:140px;} /* Marca */
-th:nth-child(2), td:nth-child(2){min-width:240px;} /* Producto */
-th:nth-child(3), td:nth-child(3){min-width:140px;} /* Cantidad */
-th:nth-child(4), td:nth-child(4){min-width:150px;} /* Precio Mayorista */
-th:nth-child(5), td:nth-child(5){min-width:150px;} /* Precio Detalle */
-th:nth-child(6), td:nth-child(6){min-width:80px;}  /* Acción */
+th:nth-child(1), td:nth-child(1){min-width:140px;}
+th:nth-child(2), td:nth-child(2){min-width:240px;}
+th:nth-child(3), td:nth-child(3){min-width:140px;}
+th:nth-child(4), td:nth-child(4){min-width:150px;}
+th:nth-child(5), td:nth-child(5){min-width:150px;}
+th:nth-child(6), td:nth-child(6){min-width:80px;}
 
 select,input{
   width:100%;
@@ -352,7 +354,7 @@ function recalcular(){
     const p=productos.find(x=>x.nombre===prod);
     if(!p) return;
 
-    pDet.textContent="₡"+p.precio_lista.toLocaleString("es-CR");
+    pDet.textContent="₡"+Number(p.precio_lista||0).toLocaleString("es-CR");
 
     let precio=0;
 
@@ -388,10 +390,11 @@ function descargarResumen(){
 
   document.querySelectorAll("#body tr").forEach(r=>{
     const producto=r.children[1].querySelector("select").value;
-    const cantidad=r.querySelector("input").value;
+    const cantidad=Number(r.querySelector("input").value||0);
     const precioMayorista=r.children[3].textContent;
 
-    if(producto && cantidad>0){
+    // No meter filas sin precio (—), porque en el resumen “se omite info relevante”
+    if(producto && cantidad>0 && precioMayorista && precioMayorista !== "—"){
       rb.innerHTML+=`
         <tr>
           <td>${producto}</td>
