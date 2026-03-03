@@ -1,3 +1,6 @@
+<!-- =========================
+     CALCULADORA DETALLE (SIN BOTÓN WHATSAPP)
+========================= -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -99,7 +102,6 @@ button{
   flex-wrap:wrap;
 }
 .download{background:#2563eb;color:#fff}
-.whatsapp{background:#25D366;color:#fff}
 .refresh{background:#6b7280;color:#fff}
 </style>
 </head>
@@ -137,7 +139,6 @@ button{
 
 <div class="actions">
   <button class="download" onclick="descargarResumen()">📥 Descargar cotización</button>
-  <button class="whatsapp" onclick="abrirWhatsApp()">📱 Abrir WhatsApp</button>
   <button class="refresh" onclick="refrescarApp()">🔄 Refrescar</button>
 </div>
 
@@ -310,7 +311,6 @@ function descargarResumen(){
   });
 }
 
-function abrirWhatsApp(){window.open("https://wa.me/","_blank");}
 function refrescarApp(){if(confirm("Esto limpiará la cotización actual. ¿Deseas continuar?"))window.location.reload(true);}
 </script>
 </body>
