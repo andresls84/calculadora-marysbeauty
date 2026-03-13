@@ -66,14 +66,16 @@ body{
   border-radius:12px;
 }
 
-table{
+/* TABLA PRINCIPAL SOLAMENTE */
+.table-container table{
   width:100%;
   border-collapse:collapse;
   table-layout:auto;
-  min-width:820px;            /* 6 columnas: evita compresión en iPhone */
+  min-width:820px;
 }
 
-th,td{
+.table-container th,
+.table-container td{
   padding:8px;
   border-bottom:1px solid #e5e7eb;
   vertical-align:middle;
@@ -81,20 +83,25 @@ th,td{
   white-space:normal;
 }
 
-th{
+.table-container th{
   background:#f9fafb;
   position:sticky;
   top:0;
   z-index:1;
 }
 
-/* Mínimos por columna */
-th:nth-child(1), td:nth-child(1){min-width:140px;} /* Marca */
-th:nth-child(2), td:nth-child(2){min-width:240px;} /* Producto */
-th:nth-child(3), td:nth-child(3){min-width:140px;} /* Cantidad */
-th:nth-child(4), td:nth-child(4){min-width:150px;} /* Precio Mayorista */
-th:nth-child(5), td:nth-child(5){min-width:150px;} /* Precio Detalle */
-th:nth-child(6), td:nth-child(6){min-width:80px;}  /* Acción */
+.table-container th:nth-child(1),
+.table-container td:nth-child(1){min-width:140px;}
+.table-container th:nth-child(2),
+.table-container td:nth-child(2){min-width:240px;}
+.table-container th:nth-child(3),
+.table-container td:nth-child(3){min-width:140px;}
+.table-container th:nth-child(4),
+.table-container td:nth-child(4){min-width:150px;}
+.table-container th:nth-child(5),
+.table-container td:nth-child(5){min-width:150px;}
+.table-container th:nth-child(6),
+.table-container td:nth-child(6){min-width:80px;}
 
 select,input{
   width:100%;
@@ -119,7 +126,8 @@ select,input{
   flex-wrap:nowrap;
 }
 .qty button{
-  width:28px;height:28px;
+  width:28px;
+  height:28px;
   background:#e5e7eb;
   border:none;
   border-radius:8px;
@@ -176,13 +184,64 @@ button{
 .download{background:#2563eb;color:#fff}
 .refresh{background:#6b7280;color:#fff}
 
+/* ESTILOS EXCLUSIVOS DEL RESUMEN/IMAGEN */
+#resumen{
+  position:absolute;
+  left:-9999px;
+  width:640px;
+  background:#fff;
+  padding:20px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+  color:#000;
+}
+
+#resumen table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  min-width:0;
+}
+
+#resumen th,
+#resumen td{
+  padding:10px 8px;
+  border-bottom:1px solid #e5e7eb;
+  vertical-align:middle;
+  white-space:normal;
+  word-break:break-word;
+}
+
+#resumen thead tr{
+  background:#f3f4f6;
+}
+
+#resumen th:nth-child(1),
+#resumen td:nth-child(1){
+  width:62%;
+  text-align:left;
+}
+
+#resumen th:nth-child(2),
+#resumen td:nth-child(2){
+  width:14%;
+  text-align:center;
+}
+
+#resumen th:nth-child(3),
+#resumen td:nth-child(3){
+  width:24%;
+  text-align:right;
+  white-space:nowrap;
+}
+
 @media (max-width:430px){
   .app{padding:10px}
   .card{padding:12px}
   .header{padding:12px;margin-bottom:8px}
   .header img{height:72px}
   .header h2{font-size:1.1rem}
-  th,td{padding:6px}
+  .table-container th,
+  .table-container td{padding:6px}
   select,input{font-size:13px;padding:5px}
   button{font-size:13px;padding:8px 10px}
 }
@@ -229,8 +288,8 @@ button{
   </div>
 </div>
 
-<!-- ================= RESUMEN OCULTO ================= -->
-<div id="resumen" style="position:absolute;left:-9999px;width:560px;background:#ffffff;padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;color:#000">
+<!-- RESUMEN -->
+<div id="resumen">
   <div style="text-align:center;margin-bottom:8px;">
     <img src="./LogoBlanco.png" style="max-width:160px;">
   </div>
@@ -249,17 +308,12 @@ button{
   <p id="r-fecha" style="margin:0 0 6px 0"></p>
   <p id="r-vence" style="margin:0 0 12px 0"></p>
 
-  <table style="width:100%;font-size:14px;border-collapse:collapse;table-layout:fixed">
-    <colgroup>
-      <col style="width:62%">
-      <col style="width:14%">
-      <col style="width:24%">
-    </colgroup>
+  <table>
     <thead>
-      <tr style="background:#f3f4f6">
-        <th style="text-align:left;padding:10px 8px;border-bottom:1px solid #e5e7eb">Producto</th>
-        <th style="text-align:center;padding:10px 8px;border-bottom:1px solid #e5e7eb">Cant.</th>
-        <th style="text-align:right;padding:10px 8px;border-bottom:1px solid #e5e7eb">Precio Unit.</th>
+      <tr>
+        <th>Producto</th>
+        <th>Cant.</th>
+        <th>Precio Unit.</th>
       </tr>
     </thead>
     <tbody id="resumen-body"></tbody>
@@ -336,13 +390,16 @@ function agregarFila(){
   document.getElementById("body").appendChild(tr);
 }
 
-function td(el){const t=document.createElement("td");t.appendChild(el);return t;}
+function td(el){
+  const t=document.createElement("td");
+  t.appendChild(el);
+  return t;
+}
 
 function recalcular(){
   let totalUnidades=0,total=0;
   const rows=document.querySelectorAll("#body tr");
 
-  // total combinado
   rows.forEach(r=>{
     totalUnidades+=Number(r.querySelector("input").value||0);
   });
@@ -361,19 +418,12 @@ function recalcular(){
 
     let precio=0;
 
-    // 1) NUEVA REGLA: 48+ combinado => precio_24 para TODOS (si existe)
     if(totalUnidades>=48 && Number(p.precio_24||0)>0){
       precio=Number(p.precio_24);
-
-    // 2) Regla existente: 24+ del mismo producto
     } else if(qty>=24 && Number(p.precio_24||0)>0){
       precio=Number(p.precio_24);
-
-    // 3) Regla existente: 12+ combinado
     } else if(totalUnidades>=12 && Number(p.precio_12||0)>0){
       precio=Number(p.precio_12);
-
-    // 4) Regla existente: 6+ combinado
     } else if(totalUnidades>=6 && Number(p.precio_6_11||0)>0){
       precio=Number(p.precio_6_11);
     }
@@ -387,7 +437,6 @@ function recalcular(){
 }
 
 function descargarResumen(){
-
   const resumenDiv = document.getElementById("resumen");
   const rb = document.getElementById("resumen-body");
   rb.innerHTML = "";
@@ -395,23 +444,18 @@ function descargarResumen(){
   const rows = document.querySelectorAll("#body tr");
 
   rows.forEach(r=>{
-
     const producto = r.children[1].querySelector("select").value;
     const cantidad = Number(r.querySelector("input").value||0);
     const precio = r.children[3].textContent;
 
     if(producto && cantidad>0){
-
       rb.innerHTML += `
       <tr>
-        <td style="text-align:left">${producto}</td>
-        <td style="text-align:center">${cantidad}</td>
-        <td style="text-align:right;font-weight:600">${precio}</td>
-      </tr>
-      `;
-
+        <td>${producto}</td>
+        <td>${cantidad}</td>
+        <td>${precio}</td>
+      </tr>`;
     }
-
   });
 
   const hoy = new Date();
@@ -427,13 +471,12 @@ function descargarResumen(){
   document.getElementById("r-total").textContent =
     document.getElementById("tF").textContent;
 
-  html2canvas(resumenDiv,{scale:2}).then(canvas=>{
+  html2canvas(resumenDiv,{scale:2,backgroundColor:"#ffffff"}).then(canvas=>{
     const a=document.createElement("a");
     a.href=canvas.toDataURL("image/png");
     a.download="cotizacion_mayorista.png";
     a.click();
   });
-
 }
 
 function refrescarApp(){
