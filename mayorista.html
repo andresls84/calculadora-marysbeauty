@@ -387,38 +387,53 @@ function recalcular(){
 }
 
 function descargarResumen(){
-  const resumenDiv=document.getElementById("resumen");
-  const rb=document.getElementById("resumen-body");
-  rb.innerHTML="";
 
-  document.querySelectorAll("#body tr").forEach(r=>{
-    const producto=r.children[1].querySelector("select").value;
-    const cantidad=Number(r.querySelector("input").value||0);
-    const precioMayorista=r.children[3].textContent;
+  const resumenDiv = document.getElementById("resumen");
+  const rb = document.getElementById("resumen-body");
+  rb.innerHTML = "";
+
+  const rows = document.querySelectorAll("#body tr");
+
+  rows.forEach(r=>{
+
+    const producto = r.children[1].querySelector("select").value;
+    const cantidad = Number(r.querySelector("input").value||0);
+    const precio = r.children[3].textContent;
 
     if(producto && cantidad>0){
-      rb.innerHTML+=`
-        <tr>
-          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;overflow-wrap:anywhere">${producto}</td>
-          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:center;font-weight:600">${cantidad}</td>
-          <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;white-space:nowrap">${precioMayorista}</td>
-        </tr>`;
+
+      rb.innerHTML += `
+      <tr>
+        <td style="text-align:left">${producto}</td>
+        <td style="text-align:center">${cantidad}</td>
+        <td style="text-align:right;font-weight:600">${precio}</td>
+      </tr>
+      `;
+
     }
+
   });
 
-  const hoy=new Date(),vence=new Date();
+  const hoy = new Date();
+  const vence = new Date();
   vence.setDate(hoy.getDate()+8);
 
-  document.getElementById("r-fecha").textContent="Fecha: "+hoy.toLocaleDateString("es-CR");
-  document.getElementById("r-vence").textContent="Válido hasta: "+vence.toLocaleDateString("es-CR");
-  document.getElementById("r-total").textContent=document.getElementById("tF").textContent;
+  document.getElementById("r-fecha").textContent =
+    "Fecha: " + hoy.toLocaleDateString("es-CR");
 
-  html2canvas(resumenDiv,{scale:2, backgroundColor:"#ffffff"}).then(c=>{
+  document.getElementById("r-vence").textContent =
+    "Válido hasta: " + vence.toLocaleDateString("es-CR");
+
+  document.getElementById("r-total").textContent =
+    document.getElementById("tF").textContent;
+
+  html2canvas(resumenDiv,{scale:2}).then(canvas=>{
     const a=document.createElement("a");
-    a.href=c.toDataURL("image/png");
+    a.href=canvas.toDataURL("image/png");
     a.download="cotizacion_mayorista.png";
     a.click();
   });
+
 }
 
 function refrescarApp(){
